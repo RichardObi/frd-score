@@ -1,10 +1,10 @@
 # adopted from https://github.com/mseitzer/pytorch-fid/blob/master/.github/workflows/tests_full.yaml
 
-name: "Full set of tests for PRs and master branch"
+name: "Full set of tests for PRs and main branch"
 on:
   push:
     branches:
-      - "master"
+      - "main"
   pull_request:
 
 concurrency:
