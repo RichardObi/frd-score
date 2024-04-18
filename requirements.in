@@ -1,6 +1,6 @@
 nibabel~=3.2.1
 nox~=2024.4.15
-numpy>=1.26.4
+numpy>=1.23.5
 opencv_contrib_python_headless~=4.8.1.78
 Pillow~=10.3.0
 pyradiomics~=3.0.1a3

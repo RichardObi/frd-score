@@ -38,7 +38,7 @@ nibabel~=3.2.1
     # via -r requirements.in
 nox~=2024.4.15
     # via -r requirements.in
-numpy>=1.26.4
+numpy>=1.23.5
     # via
     #   -r requirements.in
     #   imageio
