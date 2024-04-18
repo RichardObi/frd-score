@@ -13,7 +13,6 @@ def tests(session):
     session.install("setuptools")
     session.install("numpy")
     session.install("-r", "requirements.in")
-    session.install("numpy") #get numpy's again, but now overwriting requirements.in file to get numpy's latest version based on python version (e.g. python3.12)
     session.install(".")
     session.install("pytest")
     session.install("pytest-mock")
