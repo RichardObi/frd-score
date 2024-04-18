@@ -49,7 +49,7 @@ if __name__ == "__main__":
         },
         install_requires=[
             "pyradiomics>=3.0.1a3",
-            "numpy",
+            "numpy>=1.26.4",
             "Pillow>=10.3.0",
             "scipy>=1.10.0",
             "opencv_contrib_python_headless>=4.8.1.78",
