@@ -70,7 +70,8 @@ pluggy~=1.4.0
     # via pytest
 pykwalify~=1.8.0
     # via pyradiomics
-pyradiomics~=3.0.1a3
+pyradiomics==3.0.1a3  #3.1.0 #~=3.0.1a3
+#pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics@releases/tag/v3.1.0
     # via -r requirements.in
 pytest~=8.1.1
     # via -r requirements.in

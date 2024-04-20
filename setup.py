@@ -48,7 +48,7 @@ if __name__ == "__main__":
             ],
         },
         install_requires=[
-            "pyradiomics>=3.0.1a3",
+            "pyradiomics==3.0.1a3", #>=3.1.0", #~=3.0.1a3 #"pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics@releases/tag/v3.1.0",
             "numpy>=1.26.4",
             "Pillow>=10.3.0",
             "scipy>=1.10.0",

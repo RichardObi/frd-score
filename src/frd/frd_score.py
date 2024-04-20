@@ -729,7 +729,8 @@ def get_feature_extractor(features, settings_dict: dict = None):
         # raise a not implemented error to indicate that this feature is not yet implemented
         raise NotImplementedError(
             "Feature extraction based on a csv file is not yet implemented. "
-            "Please open an issue on github if you would like us to add this feature."
+            "Please open an issue on github if you would like us to add this feature:"
+            "https://github.com/RichardObi/frd/issues/new/choose."
         )
         # with open(features, 'r') as f:
         #    features = [line.strip() for line in f]
@@ -844,26 +845,28 @@ def save_frd_stats(
 
 
 def main():
-    args = parser.parse_args()
+    args = parse_args()
     verbose = args.verbose
     if verbose:
         logging.info(args)
 
-    if features is None:
+    if args.features is None:
         # we pass only one feature variable into the subsequent functions either containing a link (type str)
         # to a csv file or a list of feature names (type list)
         features = args.feature_groups
+    else:
+        features = args.features
 
     if args.save_stats:
         save_frd_stats(
             args.path,
             features=features,
-            normalization_type=normalization_type,
-            normalization_range=normalization_range,
+            normalization_type=args.normalization_type,
+            normalization_range=args.normalization_range,
             is_mask_used=args.is_mask_used,
             paths_mask=args.paths_mask,
             resize_size=args.resize_size,
-            verbose=verbose,
+            verbose=args.verbose,
             save_features=args.save_features,
         )
         return
@@ -871,17 +874,17 @@ def main():
     frd_value = calculate_frd_given_paths(
         args.path,
         features=features,
-        normalization_type=noormalization_type,
-        normalization_range=normalization_range,
+        normalization_type=args.normalization_type,
+        normalization_range=args.normalization_range,
         is_mask_used=args.is_mask_used,
         paths_mask=args.paths_mask,
         resize_size=args.resize_size,
-        verbose=verbose,
+        verbose=args.verbose,
         save_features=args.save_features,
     )
     # logging the result
     logging.info(
-        f"Fréchet Radiomics Distance: {frd_value}. Based on features: {features} with normalization type: {normalization_type} and normalization range: {normalization_range}{f', with masks: {paths_mask}' if args.is_mask_used else ''}{f', resized to {args.resize_size}' if args.resize is not None else ''}."
+        f"Fréchet Radiomics Distance: {frd_value}. Based on features: {features} with normalization type: {args.normalization_type} and normalization range: {args.normalization_range}{f', with masks: {args.paths_mask}' if args.is_mask_used else ''}{f', resized to {args.resize_size}' if args.resize is not None else ''}."
     )
     print(f"FRD: {frd_value}")
 

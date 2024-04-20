@@ -3,9 +3,8 @@ nox~=2024.4.15
 numpy>=1.23.5
 opencv_contrib_python_headless~=4.8.1.78
 Pillow~=10.3.0
-pyradiomics~=3.0.1a3
+pyradiomics==3.0.1a3
 pytest~=8.1.1
-radiomics~=0.1
 scipy~=1.10.0
 setuptools~=65.6.3
 SimpleITK~=2.3.1
