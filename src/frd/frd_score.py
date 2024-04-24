@@ -19,15 +19,13 @@ import os
 import pathlib
 import time
 from pathlib import Path
-from typing import List
 
 import cv2
 import numpy as np
 import SimpleITK as sitk
-import torch
-from PIL import Image
+
 from radiomics import featureextractor
-from scipy import linalg, stats
+from scipy import linalg
 from tqdm import tqdm
 
 
@@ -59,7 +57,7 @@ def parse_args() -> argparse.Namespace:
         "features."
     )
     parser.add_argument(
-        "--paths",
+        "paths",
         type=str,
         nargs=2,
         help="The two paths to the generated images or to .npz statistic files",
@@ -752,7 +750,7 @@ def calculate_frd_given_paths(
     normalization_type,
     normalization_range,
     is_mask_used=True,
-    paths_mask=None,
+    paths_masks=None,
     resize_size=None,
     verbose=False,
     save_features=True,
@@ -771,7 +769,7 @@ def calculate_frd_given_paths(
         normalization_range,
         feature_extractor,
         is_mask_used=is_mask_used,
-        path_mask=None if paths_mask is None else paths_mask[0],
+        path_mask=None if paths_masks is None else paths_masks[0],
         resize_size=resize_size,
         verbose=verbose,
         save_features=save_features,
@@ -784,7 +782,7 @@ def calculate_frd_given_paths(
         normalization_range,
         feature_extractor,
         is_mask_used=is_mask_used,
-        path_mask=None if paths_mask is None else paths_mask[1],
+        path_mask=None if paths_masks is None else paths_masks[1],
         resize_size=resize_size,
         verbose=verbose,
         save_features=save_features,
@@ -802,7 +800,7 @@ def save_frd_stats(
     normalization_type: str,
     normalization_range: list,
     is_mask_used=True,
-    paths_mask=None,
+    paths_masks=None,
     resize_size=None,
     verbose=False,
     save_features=True,
@@ -835,7 +833,7 @@ def save_frd_stats(
         normalization_range=normalization_range,
         feature_extractor=feature_extractor,
         is_mask_used=is_mask_used,
-        path_mask=None if paths_mask is None else paths_mask[0],
+        path_mask=None if paths_masks is None else paths_masks[0],
         resize_size=resize_size,
         verbose=verbose,
         save_features=save_features,
@@ -859,12 +857,12 @@ def main():
 
     if args.save_stats:
         save_frd_stats(
-            args.path,
+            args.paths,
             features=features,
             normalization_type=args.normalization_type,
             normalization_range=args.normalization_range,
             is_mask_used=args.is_mask_used,
-            paths_mask=args.paths_mask,
+            paths_masks=args.paths_masks,
             resize_size=args.resize_size,
             verbose=args.verbose,
             save_features=args.save_features,
@@ -872,19 +870,19 @@ def main():
         return
 
     frd_value = calculate_frd_given_paths(
-        args.path,
+        args.paths,
         features=features,
         normalization_type=args.normalization_type,
         normalization_range=args.normalization_range,
         is_mask_used=args.is_mask_used,
-        paths_mask=args.paths_mask,
+        paths_masks=args.paths_masks,
         resize_size=args.resize_size,
         verbose=args.verbose,
         save_features=args.save_features,
     )
     # logging the result
     logging.info(
-        f"Fréchet Radiomics Distance: {frd_value}. Based on features: {features} with normalization type: {args.normalization_type} and normalization range: {args.normalization_range}{f', with masks: {args.paths_mask}' if args.is_mask_used else ''}{f', resized to {args.resize_size}' if args.resize is not None else ''}."
+        f"Fréchet Radiomics Distance: {frd_value}. Based on features: {features} with normalization type: {args.normalization_type} and normalization range: {args.normalization_range}{f', with masks: {args.paths_masks}' if args.is_mask_used else ''}{f', resized to {args.resize_size}' if args.resize_size is not None else ''}."
     )
     print(f"FRD: {frd_value}")
 

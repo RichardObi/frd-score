@@ -4,119 +4,76 @@
 #
 #    pip-compile
 #
-argcomplete~=3.3.0
+argcomplete==3.3.0
     # via nox
-colorlog~=6.8.2
+colorlog==6.8.2
     # via nox
-distlib~=0.3.8
+distlib==0.3.8
     # via virtualenv
-docopt~=0.6.2
+docopt==0.6.2
     # via pykwalify
-exceptiongroup~=1.2.0
+exceptiongroup==1.2.1
     # via pytest
-filelock~=3.13.4
-    # via
-    #   torch
-    #   virtualenv
-imageio~=2.34.0
-    # via scikit-image
-iniconfig~=2.0.0
+filelock==3.13.4
+    # via virtualenv
+iniconfig==2.0.0
     # via pytest
-jinja2~=3.1.3
-    # via torch
-lazy-loader~=0.4
-    # via scikit-image
-markupsafe~=2.1.5
-    # via jinja2
-mpmath~=1.2.1
-    # via sympy
-networkx~=3.3
-    # via
-    #   scikit-image
-    #   torch
-nibabel~=3.2.1
+nibabel==3.2.2
     # via -r requirements.in
-nox~=2024.4.15
+nox==2024.4.15
     # via -r requirements.in
-numpy>=1.23.5
+numpy==1.26.4
     # via
     #   -r requirements.in
-    #   imageio
     #   nibabel
     #   opencv-contrib-python-headless
     #   pyradiomics
     #   pywavelets
-    #   radiomics
-    #   scikit-image
     #   scipy
-    #   tifffile
-opencv-contrib-python-headless~=4.8.1.78
+opencv-contrib-python-headless==4.8.1.78
     # via -r requirements.in
-packaging~=24.0
+packaging==24.0
     # via
-    #   lazy-loader
     #   nibabel
     #   nox
     #   pytest
-    #   scikit-image
-pillow~=10.3.0
-    # via
-    #   -r requirements.in
-    #   imageio
-    #   scikit-image
-platformdirs~=4.2.0
+pillow==10.3.0
+    # via -r requirements.in
+platformdirs==4.2.1
     # via virtualenv
-pluggy~=1.4.0
+pluggy==1.5.0
     # via pytest
-pykwalify~=1.8.0
+pykwalify==1.8.0
     # via pyradiomics
-pyradiomics==3.0.1a3  #3.1.0 #~=3.0.1a3
-#pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics@releases/tag/v3.1.0
+pyradiomics==3.0.1a3
     # via -r requirements.in
-pytest~=8.1.1
+pytest==8.1.1
     # via -r requirements.in
-python-dateutil~=2.9.0.post0
+python-dateutil==2.9.0.post0
     # via pykwalify
-pywavelets~=1.6.0
-    # via
-    #   pyradiomics
-    #   radiomics
-radiomics~=0.1
-    # via -r requirements.in
-ruamel-yaml~=0.18.6
+pywavelets==1.6.0
+    # via pyradiomics
+ruamel-yaml==0.18.6
     # via pykwalify
-ruamel-yaml-clib~=0.2.8
+ruamel-yaml-clib==0.2.8
     # via ruamel-yaml
-scikit-image~=0.23.1
-    # via radiomics
-scipy~=1.10.0
-    # via
-    #   -r requirements.in
-    #   radiomics
-    #   scikit-image
-simpleitk~=2.3.1
+scipy==1.10.1
+    # via -r requirements.in
+simpleitk==2.3.1
     # via
     #   -r requirements.in
     #   pyradiomics
-six~=1.16.0
+six==1.16.0
     # via
     #   pyradiomics
     #   python-dateutil
-sympy~=1.12
-    # via torch
-tifffile~=2024.4.18
-    # via scikit-image
-tomli~=2.0.1
+tomli==2.0.1
     # via
     #   nox
     #   pytest
-torch~=2.0.0
+tqdm==4.64.1
     # via -r requirements.in
-tqdm~=4.64.1
-    # via -r requirements.in
-typing-extensions~=4.11.0
-    # via torch
-virtualenv~=20.25.3
+virtualenv==20.26.0
     # via nox
 
 # The following packages are considered to be unsafe in a requirements file:
