@@ -64,6 +64,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-m",
         "--paths_masks",
         type=str,
         nargs=2,
@@ -72,46 +73,10 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--is_mask_used",
-        action="store_true",
-        help="Generate radiomics based on either available mask or for the whole image.",
-    )
-
-    parser.add_argument(
-        "--resize_size",
-        type=int,
-        default=None,
-        help="In case the input images (and masks) are to be resized to a specific pixel dimension. "
-    )
-
-    parser.add_argument(
-        "--save_stats",
-        action="store_true",
-        help="Generate an npz archive from a directory of samples. The first path is used as input and "
-        "the second as output.",
-    )
-
-    parser.add_argument(
-        "--normalization_range",
-        type=list,
-        default=[0, 7.45670747756958],
-        help="The allowed value range of features. Based on these values the frd features will be "
-        "normalized. The range should be [min, max]. Default is [0, 7.45670747756958]. "
-        "If normalization_type is 'zscore', we recommend ignoring normalization range by setting "
-        "it to [0, 1].",
-    )
-
-    parser.add_argument(
-        "--normalization_type",
-        type=str,
-        default="minmax",
-        help="The strategy with which the frd features will be normalized. Can be 'minmax' "
-        "or 'zscore'.",
-    )
-
-    parser.add_argument(
+        "-f",
         "--feature_groups",
-        type=list,
+        nargs='+',
+        type=str,
         default=[
             "firstorder",
             "glcm",
@@ -127,6 +92,50 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-is_m",
+        "--is_mask_used",
+        action="store_true",
+        help="Generate radiomics based on either available mask or for the whole image.",
+    )
+
+    parser.add_argument(
+        "-r",
+        "--resize_size",
+        type=int,
+        default=None,
+        help="In case the input images (and masks) are to be resized to a specific pixel dimension. "
+    )
+
+    parser.add_argument(
+        "-s",
+        "--save_stats",
+        action="store_true",
+        help="Generate an npz archive from a directory of samples. The first path is used as input and "
+        "the second as output.",
+    )
+
+    parser.add_argument(
+        "-nr",
+        "--normalization_range",
+        nargs=2,
+        type=float,
+        default=[0., 7.45670747756958],
+        help="The allowed value range of features. Based on these values the frd features will be "
+        "normalized. The range should be [min, max]. Default is [0, 7.45670747756958]. "
+        "If normalization_type is 'zscore', we recommend ignoring normalization range by setting "
+        "it to [0, 1].",
+    )
+
+    parser.add_argument(
+        "-nt",
+        "--normalization_type",
+        type=str,
+        default="minmax",
+        help="The strategy with which the frd features will be normalized. Can be 'minmax' "
+        "or 'zscore'.",
+    )
+
+    parser.add_argument(
         "--features",
         type=str,
         default=None,
@@ -135,12 +144,14 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
+        "-v",
         "--verbose",
         action="store_true",
         help="You may enable more detailed logging (logging.info) console logs by providing the 'verbose' argument.",
     )
 
     parser.add_argument(
+        "-sf",
         "--save_features",
         action="store_true",
         help="Indicates whether radiomics feature values (normalized and non-normalized) should be stored in a csv file. "
@@ -313,7 +324,7 @@ def get_activations(
                 logging.debug(
                     f"Total number of features extracted for image {i}: {len(pred_arr[i])}"
                 )
-        pbar.update(1)
+            pbar.update(1)
 
     if radiomics_results:
         sample_dict = radiomics_results[0]
