@@ -10,7 +10,6 @@ from pathlib import Path
 
 import nibabel as nib
 import numpy as np
-import pytest
 from PIL import Image
 
 from src.frd import frd_score

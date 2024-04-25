@@ -677,7 +677,6 @@ def calculate_activation_statistics(
     sigma = np.cov(normalized_act, rowvar=False)
     if verbose:
         logging.debug(f"mu and sigma:  {mu} {sigma}")
-        logging.info(f"mu and sigma length: {len(mu)}, {len(sigma)}")
     return mu, sigma
 
 
