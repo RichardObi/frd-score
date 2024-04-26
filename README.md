@@ -44,7 +44,7 @@ python -m frd path/to/dataset_A path/to/dataset_B
 
 If you would like to use masks to localize radiomics features, you can provide the path to the masks as follows:
 ```
-python -m frd path/to/dataset_A path/to/dataset_B path/to/mask_A path/to/mask_B --is_mask_used
+python -m frd path/to/dataset_A path/to/dataset_B --paths_masks path/to/mask_A path/to/mask_B --is_mask_used
 ```
 
 ## Additional arguments
@@ -55,11 +55,13 @@ python -m frd path/to/dataset_A path/to/dataset_B path/to/mask_A path/to/mask_B 
 
 `--normalization_type`: The strategy with which the frd features will be normalized. Can be `minmax` or `zscore`.
 
+`--normalize_across_datasets`: If set, indicates that normalization will be computed on all features from both datasets (e.g. synthetic, real) instead of on the features of each dataset separately.
+
 `--resize_size`: You may indicate an integer here to resize the x and y pixel/voxel dimensions of the input images (and masks) using `cv2.INTER_LINEAR` interpolation. For example `resize_size=512` will resize an image of dims of e.g. `(224, 244, 120)` to `(512, 512, 120)`.
 
 `--save_features`: Indicates whether radiomics feature values (normalized and non-normalized) should be stored in a csv file in the parent dir of `path/to/dataset_A`. This can be useful for reproducibility and interpretability.
 
-`--is_mask_used`: If true, indicates that radiomics features are generated based on the available mask instead of the whole input image.
+`--is_mask_used`: If set, indicates that radiomics features are generated based on the available mask instead of the whole input image.
 
 `--verbose`: You may enable more detailed logging.info and logging.debug console logs by providing the `verbose` argument.
 

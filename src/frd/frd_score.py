@@ -41,7 +41,7 @@ IMAGE_EXTENSIONS = {
 }  # 'pgm', 'ppm', 'webp',
 
 # correctMask: Resize mask if there is a size mismatch between image and mask
-# minimumROIDimensions: Set the minimum number of dimensions for a ROI mask. Needed to avoid error, as in our datasets we may have some masks with dim=1.
+# minimumROIDimensions: Set the minimum number of dimensions for a ROI mask. Needed to avoid error, as in our datasets we may have some mask_lists with dim=1.
 # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.imageoperations.checkMask
 # force2D: True is needed to extract 2d shape features when 'shape2d' is passed as feature name alongside 3d data
 # Future work: Allow users to more easily access and adjust the settings dictionary (e.g. via command line arguments)
@@ -60,7 +60,7 @@ def parse_args() -> argparse.Namespace:
         "paths",
         type=str,
         nargs=2,
-        help="The two paths to the generated images or to .npz statistic files",
+        help="The two paths to the generated images or to .npz statistic file_lists",
     )
 
     parser.add_argument(
@@ -69,7 +69,16 @@ def parse_args() -> argparse.Namespace:
         type=str,
         nargs=2,
         default=None,
-        help="The two paths to the folder where the mask files are located.",
+        help="The two paths to the folder where the mask file_lists are located.",
+    )
+
+    parser.add_argument(
+        "-na",
+        "--normalize_across_datasets",
+        action="store_true",
+        help="If true, the normalization (e.g., minmax or zscore) as well as rescaling to normalization_range "
+             "will be done based on all features from both datasets (e.g. syn, real) instead of on the features from "
+             "each dataset separately.",
     )
 
     parser.add_argument(
@@ -103,14 +112,14 @@ def parse_args() -> argparse.Namespace:
         "--resize_size",
         type=int,
         default=None,
-        help="In case the input images (and masks) are to be resized to a specific pixel dimension. "
+        help="In case the input images (and mask_lists) are to be resized to a specific pixel dimension. "
     )
 
     parser.add_argument(
         "-s",
         "--save_stats",
         action="store_true",
-        help="Generate an npz archive from a directory of samples. The first path is used as input and "
+        help="Generate an npz archive from a directory of samples. The first paths is used as input and "
         "the second as output.",
     )
 
@@ -139,7 +148,7 @@ def parse_args() -> argparse.Namespace:
         "--features",
         type=str,
         default=None,
-        help="you may use this option to provide a csv file (e.g., path/to/feature_names.csv) with the feature names to be used for the "
+        help="you may use this option to provide a csv file (e.g., paths/to/feature_names.csv) with the feature names to be used for the "
         "frd calculation. The csv file should have a single column with the feature names.",
     )
 
@@ -173,10 +182,10 @@ def get_activations(
     """Calculates the activations of the pool_3 layer for all images.
 
     Params:
-    -- files       : List of image files paths
+    -- file_lists       : List of image file_lists paths
     -- feature_extractor       : Instance of radiomics feature_extractor
-    -- is_mask_used : Boolean indicating whether masks should be used for feature extraction
-    -- masks : The list of paths of the mask files
+    -- is_mask_used : Boolean indicating whether mask_lists should be used for feature extraction
+    -- mask_lists : The list of paths of the mask file_lists
     -- resize_size: In case the images should be resized before the radiomics features are calculated
     -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
 
@@ -468,12 +477,12 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
 
 def z_score_normalize(
-    features, new_min=0, new_max=1, replace_nan=True, strict=False, feature_names=None
+    features, new_min=0, new_max=1, replace_nan=True, strict=False, feature_names=None, base_distribution=None,
 ):
     """Calculate the z score normalisation values of each feature across all images"""
 
-    mean_values = np.nanmean(features, axis=0)
-    std_values = np.nanstd(features, axis=0)
+    mean_values = np.nanmean(features, axis=0) if base_distribution is None else np.nanmean(base_distribution, axis=0)
+    std_values = np.nanstd(features, axis=0) if base_distribution is None else np.nanstd(base_distribution, axis=0)
 
     # Create a new copy of features to perform normalization
     normalized_features = np.copy(features)
@@ -523,11 +532,11 @@ def z_score_normalize(
     return normalized_features
 
 
-def min_max_normalize(features, new_min, new_max, replace_nan=True, feature_names=None):
+def min_max_normalize(features, new_min, new_max, replace_nan=True, feature_names=None, base_distribution=None):
     """Calculate the minimum and maximum values of each feature across all images"""
 
-    min_values = np.nanmin(features, axis=0)
-    max_values = np.nanmax(features, axis=0)
+    min_values = np.nanmin(features, axis=0) if base_distribution is None else np.nanmin(base_distribution, axis=0)
+    max_values = np.nanmax(features, axis=0) if base_distribution is None else np.nanmax(base_distribution, axis=0)
 
     # Create a new copy of features to perform normalization
     normalized_features = np.copy(features)
@@ -568,24 +577,25 @@ def min_max_normalize(features, new_min, new_max, replace_nan=True, feature_name
 
 
 def calculate_activation_statistics(
-    files,
-    normalization_type,
-    normalization_range,
+    file_lists: list,
+    normalization_type: str,
+    normalization_range: list,
     feature_extractor,
-    is_mask_used=True,
-    masks=None,
-    resize_size=None,
-    verbose=False,
-    save_features=False,
-):
+    is_mask_used: bool=True,
+    mask_lists: list=[None, None],
+    resize_size: int=None,
+    verbose: bool=False,
+    save_features: bool=False,
+    normalize_datasets_separately: bool=True,
+) -> (list,list):
     """Calculation of the statistics used by the FID.
     Params:
-    -- files                : List of image files paths
+    -- file_lists                : List of image file_lists paths
     -- normalization_type : The method with which the extracted features should be normalized
     -- normalization_range : The range of normalization to scale the extracted features to after normalization
     -- feature_extractor    : Instance of pyradiomics feature_extractor
-    -- is_mask_used : Boolean indicating whether masks should be used for feature extraction
-    -- masks : The list of paths of the mask files
+    -- is_mask_used : Boolean indicating whether mask_lists should be used for feature extraction
+    -- mask_lists : The list of paths of the mask file_lists
     -- resize_size: In case the images should be resized before the radiomics features are calculated
     -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
 
@@ -593,146 +603,171 @@ def calculate_activation_statistics(
     -- mu    : The mean over features extracted by the pyradiomics feature_extractor.
     -- sigma : The covariance matrix of the features extracted by the pyradiomics feature_extractor.
     """
-    act, radiomics_results, image_paths, mask_paths = get_activations(
-        files=files,
-        feature_extractor=feature_extractor,
-        is_mask_used=is_mask_used,
-        masks=masks,
-        resize_size=resize_size,
-        verbose=verbose,
-    )
-    if verbose:
-        logging.debug(f"features of radiomics: {act}")
-        logging.debug(f"features of radiomics shape: {type(act)}")
 
-    # Extract the folder name from the first image file path
-    folder_name = Path(files[0]).parent.stem
+    feature_list = []
 
-    # Generate a unique identifier using the current timestamp
-    unique_identifier = int(time.time())
-
-    # Define the CSV file path with a unique identifier and the folder name in the name. Default: Store inside parent folder of image_paths
-    csv_file_path = os.path.join(
-        str(Path(files[0]).parents[1]),
-        f"radiomics_results_{folder_name}_{unique_identifier}.csv",
-    )
-
-    # to check NaN values in features
-    features = act
-
-    if np.isnan(features).any():
-        nan_indices = np.where(np.isnan(features))
-        unique_nan_indices = np.unique(nan_indices[1])
-        logging.warning("Warning: NaN values detected in the features array.")
+    for idx, file_list in enumerate(file_lists):
+        act, radiomics_results, image_paths, mask_paths = get_activations(
+            files=file_list,
+            feature_extractor=feature_extractor,
+            is_mask_used=is_mask_used,
+            masks=mask_lists[idx] if mask_lists is not None else None,
+            resize_size=resize_size,
+            verbose=verbose,
+        )
         if verbose:
-            logging.info("Number of NaN values for each feature:")
-        for feature_idx in unique_nan_indices:
-            nan_count = np.sum(np.isnan(features[:, feature_idx]))
+            logging.debug(f"features of radiomics: {act}")
+            logging.debug(f"features of radiomics shape: {type(act)}")
+
+        # to check NaN values in features
+        features = act
+
+        if np.isnan(features).any():
+            nan_indices = np.where(np.isnan(features))
+            unique_nan_indices = np.unique(nan_indices[1])
+            logging.warning("Warning: NaN values detected in the features array.")
             if verbose:
-                logging.info(f"Feature {feature_idx}: {nan_count} NaN values")
-            # Get the row indices with NaN values for this feature
-            row_indices_with_nan = nan_indices[0][nan_indices[1] == feature_idx]
-            if verbose:
-                logging.info(
-                    f"Row indices with NaN values for Feature {feature_idx}: {row_indices_with_nan}"
-                )
+                logging.info("Number of NaN values for each feature:")
+            for feature_idx in unique_nan_indices:
+                nan_count = np.sum(np.isnan(features[:, feature_idx]))
+                if verbose:
+                    logging.info(f"Feature {feature_idx}: {nan_count} NaN values")
+                # Get the row indices with NaN values for this feature
+                row_indices_with_nan = nan_indices[0][nan_indices[1] == feature_idx]
+                if verbose:
+                    logging.info(
+                        f"Row indices with NaN values for Feature {feature_idx}: {row_indices_with_nan}"
+                    )
 
-    # get the feature names
-    feature_names = list(radiomics_results[0].keys())
-    if normalization_type == "minmax":
-        normalized_act = min_max_normalize(
-            features=act,
-            new_min=normalization_range[0],
-            new_max=normalization_range[1],
-            feature_names=feature_names,
-        )
-    elif normalization_type == "zscore":
-        normalized_act = z_score_normalize(
-            features=act,
-            new_min=normalization_range[0],
-            new_max=normalization_range[1],
-            feature_names=feature_names,
-        )
-    else:
-        raise ValueError(
-            f"Normalization type {normalization_type} is not supported. "
-            f"Please use 'minmax' or 'zscore'."
-        )
+        # store the extracted features of this dataset in list
+        feature_list.append(features)
 
-    if verbose:
-        logging.debug(f"features found are as follows: {act}")
-        logging.debug(f"normalized_features: {normalized_act}")
+        # get the feature names
+        feature_names = list(radiomics_results[0].keys())
 
-    norm_csv_file_path = os.path.join(
-        str(Path(files[0]).parents[1]),
-        f"radiomics_results_normalized_{folder_name}_{unique_identifier}.csv",
-    )
+    mu_list = []
+    sigma_list = []
+    normalized_feature_list = []
+    base_distribution = None
+    if normalize_datasets_separately:
+        # Concatenate all features to calculate the normalization statistics
+        base_distribution = np.concatenate(feature_list, axis=0)
+    for idx, features in enumerate(feature_list):
+        if normalization_type == "minmax":
+            normalized_features = min_max_normalize(
+                    features=features,
+                    new_min=normalization_range[0],
+                    new_max=normalization_range[1],
+                    feature_names=feature_names,
+                    base_distribution=base_distribution,
+            )
+        elif normalization_type == "zscore":
+            normalized_features = z_score_normalize(
+                    features=features,
+                    new_min=normalization_range[0],
+                    new_max=normalization_range[1],
+                    feature_names=feature_names,
+                    base_distribution=base_distribution,
+            )
+        else:
+            raise ValueError(
+                f"Normalization type {normalization_type} is not supported. "
+                f"Please use 'minmax' or 'zscore'."
+            )
+        mu_list.append(np.mean(normalized_features, axis=0))
+        sigma_list.append(np.cov(normalized_features, rowvar=False))
+        normalized_feature_list.append(normalized_features)
+
     if save_features:
-        save_features_to_csv(csv_file_path, image_paths, mask_paths, radiomics_results)
-        save_features_to_csv(
-            norm_csv_file_path, image_paths, mask_paths, radiomics_results
-        )
+        for idx, normalized_features in enumerate(normalized_feature_list):
+            # Extract the folder name from the first image file paths
+            folder_name = Path(file_lists[idx][0]).parent.stem
 
-    mu = np.mean(normalized_act, axis=0)
-    sigma = np.cov(normalized_act, rowvar=False)
-    if verbose:
-        logging.debug(f"mu and sigma:  {mu} {sigma}")
-    return mu, sigma
+            # Generate a unique identifier using the current timestamp
+            unique_identifier = int(time.time())
+
+            # Storage location
+            storage_dir = str(Path(file_lists[idx][0]).parents[1])
+
+            # Define the CSV file paths with a unique identifier and the folder name in the name.
+            # Default: Store inside parent folder of image_paths
+            csv_file_path = os.path.join(
+                storage_dir,
+                f"radiomics_set{idx}_results_{folder_name}_{unique_identifier}.csv",
+            )
+            norm_csv_file_path = os.path.join(
+                storage_dir,
+                f"radiomics_set{idx}_results_normalized_{folder_name}_{unique_identifier}.csv",
+            )
+            save_features_to_csv(csv_file_path, image_paths, mask_paths, radiomics_results)
+            save_features_to_csv(norm_csv_file_path, image_paths, mask_paths, radiomics_results)
+
+    return mu_list, sigma_list
 
 
-def compute_statistics_of_path(
-    path,
-    normalization_type,
-    normalization_range,
+def compute_statistics_of_paths(
+    paths: list, # TODO
+    normalization_type: str,
+    normalization_range: list,
     feature_extractor,
     is_mask_used=True,
-    path_mask=None,
+    paths_mask: list=None,  # TODO
     resize_size=None,
     verbose=False,
     save_features=False,
+    normalize_datasets_separately=True,
 ):
-    """Calculates the statistics later used to compute the Frechet Distance for a given path (i.e. one of the two distributions)."""
+    """Calculates the statistics later used to compute the Frechet Distance for a given paths (i.e. one of the two distributions)."""
 
-    if path.endswith(".npz"):
-        with np.load(path) as f:
+    if paths[0].endswith(".npz"):
+        with np.load(paths[0]) as f:
             m, s = f["mu"][:], f["sigma"][:]
     else:
-        path = pathlib.Path(path)
-        files = sorted(
-            [file for ext in IMAGE_EXTENSIONS for file in path.glob("*.{}".format(ext))]
-        )
-        if path_mask is not None:
-            # Assumption: Each file in image dir has a corresponding file in mask dir with name
-            # similar enough to ensure correspondence via sorting
-            masks = sorted(
-                [
-                    mask
-                    for ext in IMAGE_EXTENSIONS
-                    for mask in path.glob("*.{}".format(ext))
-                ]
+        file_lists = []
+        mask_lists = []
+        for path in paths:
+            path = pathlib.Path(path)
+            file_lists.append(sorted(
+                [file for ext in IMAGE_EXTENSIONS for file in path.glob("*.{}".format(ext))])
             )
+        if paths_mask is not None:
+            for path_mask in paths_mask:
+                if path_mask is None:
+                    mask_lists.append(None)
+                else:
+                    path_mask = pathlib.Path(path_mask)
+                    # Assumption: Each file in image dir has a corresponding file in mask dir with name
+                    # similar enough to ensure correspondence via sorting
+                    mask_lists.append(sorted(
+                        [
+                            mask
+                            for ext in IMAGE_EXTENSIONS
+                            for mask in path_mask.glob("*.{}".format(ext))
+                        ]
+                    ))
         else:
-            masks = None
+            mask_lists = [None, None]
             if verbose:
-                logging.debug(f"files in compute_statistics_of_path: {files}")
-        m, s = calculate_activation_statistics(
-            files=files,
+                logging.debug(f"file_lists in compute_statistics_of_path: {file_lists}")
+
+        return calculate_activation_statistics(
+            file_lists=file_lists,
             normalization_type=normalization_type,
             normalization_range=normalization_range,
             feature_extractor=feature_extractor,
             is_mask_used=is_mask_used,
-            masks=masks,
+            mask_lists=mask_lists,
             resize_size=resize_size,
             verbose=verbose,
             save_features=save_features,
+            normalize_datasets_separately=normalize_datasets_separately,
         )
-    return m, s
 
 
 def get_feature_extractor(features, settings_dict: dict = None):
     """Returns a pyradiomics feature extractor allowing to customize the list of radiomics features to compute based on your dataset"""
 
-    # Check if features is a string and a path pointing to a csv file
+    # Check if features is a string and a paths pointing to a csv file
     if isinstance(features, str) and features.endswith(".csv"):
         # raise a not implemented error to indicate that this feature is not yet implemented
         raise NotImplementedError(
@@ -764,42 +799,42 @@ def calculate_frd_given_paths(
     resize_size=None,
     verbose=False,
     save_features=True,
+    normalize_datasets_separately=True,
 ):
     """Calculates the FRD based on the statistics from the two paths (i.e. the two distributions)"""
 
     for p in paths:
         if not os.path.exists(p):
-            raise RuntimeError(f"Invalid path: {p}")
+            raise RuntimeError(f"Invalid paths: {p}")
+
+    if not normalize_datasets_separately and '.npz' in paths[0]:
+        raise ValueError(
+            f"Normalization of datasets together is not supported when .npz file is provided. "
+            f"In .npz file (normalized) statistics are already computed. "
+            f"Please set normalize_datasets_separately to True or use image paths instead of .npz files."
+        )
 
     feature_extractor = get_feature_extractor(features=features)
 
-    m1, s1 = compute_statistics_of_path(
-        paths[0],
+    mu_list, sigma_list = compute_statistics_of_paths(
+        paths,
         normalization_type,
         normalization_range,
         feature_extractor,
         is_mask_used=is_mask_used,
-        path_mask=None if paths_masks is None else paths_masks[0],
+        paths_mask=None if paths_masks is None else paths_masks,
         resize_size=resize_size,
         verbose=verbose,
         save_features=save_features,
+        normalize_datasets_separately=normalize_datasets_separately,
+
     )
+
     if verbose:
-        logging.debug(f"m1: {m1}, s1: {s1}")
-    m2, s2 = compute_statistics_of_path(
-        paths[1],
-        normalization_type,
-        normalization_range,
-        feature_extractor,
-        is_mask_used=is_mask_used,
-        path_mask=None if paths_masks is None else paths_masks[1],
-        resize_size=resize_size,
-        verbose=verbose,
-        save_features=save_features,
-    )
-    if verbose:
-        logging.debug(f"m2: {m2}, s2: {s2}")
-    frd_value = calculate_frechet_distance(m1, s1, m2, s2)
+        logging.debug(f"mu_list: {mu_list}, sigma_list: {sigma_list}")
+
+    # Note: Assumption that len mu_list and len sigma_list is 2
+    frd_value = calculate_frechet_distance(mu_list[0], sigma_list[0], mu_list[1], sigma_list[2])
 
     return frd_value
 
@@ -819,37 +854,37 @@ def save_frd_stats(
 
     if not os.path.exists(paths[0]):
         raise RuntimeError(
-            f"Please use a valid path to imaging data. Currently got invalid path: {paths[0]}"
+            f"Please use a valid paths to imaging data. Currently got invalid paths: {paths[0]}"
         )
 
     if os.path.exists(paths[1]):
         raise RuntimeError(
-            f"Please use an output file path to an .npz file that does not yet exists. Currently got output file: {paths[1]}"
+            f"Please use an output file paths to an .npz file that does not yet exists. Currently got output file: {paths[1]}"
         )
     elif not paths[1].endswith(".npz"):
         logging.warning(
-            f"Please revise as your provided stats output file path '{paths[1]}' does not have an .npz extension. "
-            f"Now continuing with the current path."
+            f"Please revise as your provided stats output file paths '{paths[1]}' does not have an .npz extension. "
+            f"Now continuing with the current paths."
         )
 
     feature_extractor = get_feature_extractor(features=features)
 
     if verbose:
-        logging.info(f"Saving statistics for {paths[0]}")
+        logging.info(f"Nowe computing and calculating statistics for {paths}")
 
-    m1, s1 = compute_statistics_of_path(
-        paths[0],
+    mu_list, sigma_list = compute_statistics_of_paths(
+        [paths[0]],
         normalization_type=normalization_type,
         normalization_range=normalization_range,
         feature_extractor=feature_extractor,
         is_mask_used=is_mask_used,
-        path_mask=None if paths_masks is None else paths_masks[0],
+        paths_mask=None if paths_masks is None else [paths_masks[0]],
         resize_size=resize_size,
         verbose=verbose,
         save_features=save_features,
     )
 
-    np.savez_compressed(paths[1], mu=m1, sigma=s1)
+    np.savez_compressed(paths[1], mu=mu_list[0], sigma=sigma_list[0])
 
 
 def main():
@@ -889,10 +924,12 @@ def main():
         resize_size=args.resize_size,
         verbose=args.verbose,
         save_features=args.save_features,
+        normalize_datasets_separately=not args.normalize_across_datasets,
     )
     # logging the result
     logging.info(
-        f"Fréchet Radiomics Distance: {frd_value}. Based on features: {features} with normalization type: {args.normalization_type} and normalization range: {args.normalization_range}{f', with masks: {args.paths_masks}' if args.is_mask_used else ''}{f', resized to {args.resize_size}' if args.resize_size is not None else ''}."
+        f"Fréchet Radiomics Distance: {frd_value}. "
+        f"Based on features: {features} with normalization type: {args.normalization_type} and normalization range: {args.normalization_range} (was normalization done separately for each dataset? -> {not args.normalize_across_datasets}){f', with mask_lists: {args.paths_masks}' if args.is_mask_used else ''}{f', resized to {args.resize_size}' if args.resize_size is not None else ''}."
     )
     print(f"FRD: {frd_value}")
 

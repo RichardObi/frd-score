@@ -98,6 +98,7 @@ class TestFRD:
                 resize_size=120,
                 verbose=True,
                 save_features=False,
+                normalize_datasets_separately=False,
             )
             self.logger.warning(
                 f"FRD value 2D no masks, zscore normalized: {frd_value}"
@@ -169,6 +170,7 @@ class TestFRD:
                 resize_size=120,
                 verbose=True,
                 save_features=False,
+                normalize_datasets_separately=False,
             )
             self.logger.warning(
                 f"FRD value 3D no masks, minmax normalized: {frd_value}"
@@ -193,6 +195,7 @@ class TestFRD:
                 resize_size=None,
                 verbose=True,
                 save_features=False,
+                normalize_datasets_separately=False,
             )
             self.logger.warning(
                 f"FRD value 3D no masks comparing identical datasets, minmax normalized: {frd_value}"
@@ -245,6 +248,7 @@ class TestFRD:
                 resize_size=None,
                 verbose=True,
                 save_features=False,
+                normalize_datasets_separately=True,
             )
             self.logger.warning(
                 f"FRD value 3D with masks (but same images), minmax normalized: {frd_value}"
@@ -268,6 +272,7 @@ class TestFRD:
                 resize_size=None,
                 verbose=True,
                 save_features=False,
+                normalize_datasets_separately=True,
             )
             self.logger.warning(
                 f"FRD value 3D with masks (but same images), minmax normalized: {frd_value}"
