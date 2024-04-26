@@ -823,7 +823,7 @@ def compute_frd(
     if verbose: logging.debug(f"mu_list: {mu_list}, sigma_list: {sigma_list}")
 
     # Note: Assumption that len mu_list and len sigma_list is 2
-    frd_value = calculate_frechet_distance(mu_list[0], sigma_list[0], mu_list[1], sigma_list[2])
+    frd_value = calculate_frechet_distance(mu_list[0], sigma_list[0], mu_list[1], sigma_list[1])
 
     # Print this here instead of main() as compute_frd function may be used in other scripts as opposed to cmd line
     print(f"FRD: {frd_value}")
