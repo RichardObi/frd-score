@@ -44,28 +44,28 @@ python -m frd path/to/dataset_A path/to/dataset_B
 
 If you would like to use masks to localize radiomics features, you can provide the path to the masks as follows:
 ```
-python -m frd path/to/dataset_A path/to/dataset_B --paths_masks path/to/mask_A path/to/mask_B --is_mask_used
+python -m frd path/to/dataset_A path/to/dataset_B -M path/to/mask_A path/to/mask_B --is_mask_used
 ```
 
 ## Additional arguments
+ 
+`--paths_masks` or `-M`: The two paths to the masks of the two datasets. The masks should have the same dimensions as the images. The masks should be binary images, where the region of interest is white (pixel value 255) and the background is black (pixel value 0). Masks are used to localize radiomics features.
 
-`--feature_groups`: You may define a subset of [radiomics features](https://pyradiomics.readthedocs.io/en/latest/customization.html#enabled-features) to calulate the FRD. Currently, a list of all features is used as default, i.e. `firstorder`, `glcm`, `glrlm`, `gldm`, `glszm`, `ngtdm`, `shape`, `shape2D`   
+`--feature_groups` or `-f`: You may define a subset of [radiomics features](https://pyradiomics.readthedocs.io/en/latest/customization.html#enabled-features) to calulate the FRD. Currently, a list of all features is used as default, i.e. `firstorder`, `glcm`, `glrlm`, `gldm`, `glszm`, `ngtdm`, `shape`, `shape2D`   
 
-`--normalization_range`: The allowed value range of features in format `[min, max]`. Based on these values the frd features will be normalized. For comparability with FID, the default is `[0, 7.45670747756958]` which is an observed range for features of the Inception classifier in [FID](https://arxiv.org/abs/1706.08500). 
+`--norm_range` or `-R`: The allowed value range of features in format `[min, max]`. Based on these values the frd features will be normalized. For comparability with FID, the default is `[0, 7.45670747756958]` which is an observed range for features of the Inception classifier in [FID](https://arxiv.org/abs/1706.08500). 
 
-`--normalization_type`: The strategy with which the frd features will be normalized. Can be `minmax` or `zscore`.
+`--norm_type` or `-T`: The strategy with which the frd features will be normalized. Can be `minmax` or `zscore`.
 
-`--normalize_across_datasets`: If set, indicates that normalization will be computed on all features from both datasets (e.g. synthetic, real) instead of on the features of each dataset separately.
+`--norm_across` or `-A`: If set, indicates that normalization will be computed on all features from both datasets (e.g. synthetic, real) instead of on the features of each dataset separately.
 
-`--resize_size`: You may indicate an integer here to resize the x and y pixel/voxel dimensions of the input images (and masks) using `cv2.INTER_LINEAR` interpolation. For example `resize_size=512` will resize an image of dims of e.g. `(224, 244, 120)` to `(512, 512, 120)`.
+`--resize_size` or `-r`: You may indicate an integer here to resize the x and y pixel/voxel dimensions of the input images (and masks) using `cv2.INTER_LINEAR` interpolation. For example `resize_size=512` will resize an image of dims of e.g. `(224, 244, 120)` to `(512, 512, 120)`.
 
-`--save_features`: Indicates whether radiomics feature values (normalized and non-normalized) should be stored in a csv file in the parent dir of `path/to/dataset_A`. This can be useful for reproducibility and interpretability.
+`--save_features` or `-F`: Indicates whether radiomics feature values (normalized and non-normalized) should be stored in a csv file in the parent dir of `path/to/dataset_A`. This can be useful for reproducibility and interpretability.
 
-`--is_mask_used`: If set, indicates that radiomics features are generated based on the available mask instead of the whole input image.
+`--verbose` or `-v`: You may enable more detailed logging.info and logging.debug console logs by providing the `verbose` argument.
 
-`--verbose`: You may enable more detailed logging.info and logging.debug console logs by providing the `verbose` argument.
-
-`--save-stats`:
+`--save-stats` or `-s`:
 As in [pytorch-fid](https://github.com/mseitzer/pytorch-fid), you can generate a compatible `.npz` archive of a dataset using the `--save-stats` flag. 
 You may use the `.npz` archive as dataset path, which can be useful to compare multiple models against an original dataset without recalculating the statistics multiple times.
 ```

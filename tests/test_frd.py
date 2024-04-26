@@ -65,8 +65,8 @@ class TestFRD:
             "shape2D",
             "shape",
         ]
-        normalization_type = "zscore"
-        normalization_range = [0, 7.45670747756958]
+        norm_type = "zscore"
+        norm_range = [0, 7.45670747756958]
 
         # Test if this function raises error
         try:
@@ -74,9 +74,8 @@ class TestFRD:
             frd_score.save_frd_stats(
                 paths,
                 features,
-                normalization_type,
-                normalization_range,
-                is_mask_used=False,
+                norm_type,
+                norm_range,
                 paths_masks=None,
                 resize_size=120,
                 verbose=True,
@@ -91,14 +90,13 @@ class TestFRD:
             frd_value = frd_score.calculate_frd_given_paths(
                 paths,
                 features,
-                normalization_type,
-                normalization_range,
-                is_mask_used=False,
+                norm_type,
+                norm_range,
                 paths_masks=None,
                 resize_size=120,
                 verbose=True,
                 save_features=False,
-                normalize_datasets_separately=False,
+                norm_sets_separately=False,
             )
             self.logger.warning(
                 f"FRD value 2D no masks, zscore normalized: {frd_value}"
@@ -154,8 +152,8 @@ class TestFRD:
             "shape",
             "shape2D",
         ]
-        normalization_type = "minmax"
-        normalization_range = [1, 30]
+        norm_type = "minmax"
+        norm_range = [1, 30]
         # Test if this function raises error
         try:
             # Should get very high FRD value
@@ -163,14 +161,13 @@ class TestFRD:
             frd_value = frd_score.calculate_frd_given_paths(
                 paths,
                 features,
-                normalization_type,
-                normalization_range,
-                is_mask_used=False,
+                norm_type,
+                norm_range,
                 paths_masks=None,
                 resize_size=120,
                 verbose=True,
                 save_features=False,
-                normalize_datasets_separately=False,
+                norm_sets_separately=False,
             )
             self.logger.warning(
                 f"FRD value 3D no masks, minmax normalized: {frd_value}"
@@ -183,19 +180,18 @@ class TestFRD:
         try:
             # Now we should get a very low FRD value comparing tmp_path1 with tmp_path1
             paths = [path_a, path_a]
-            normalization_type = "minmax"
-            normalization_range = [0.0, 5.0]
+            norm_type = "minmax"
+            norm_range = [0.0, 5.0]
             frd_value = frd_score.calculate_frd_given_paths(
                 paths,
                 features,
-                normalization_type,
-                normalization_range,
-                is_mask_used=False,
+                norm_type,
+                norm_range,
                 paths_masks=None,
                 resize_size=None,
                 verbose=True,
                 save_features=False,
-                normalize_datasets_separately=False,
+                norm_sets_separately=False,
             )
             self.logger.warning(
                 f"FRD value 3D no masks comparing identical datasets, minmax normalized: {frd_value}"
@@ -234,21 +230,20 @@ class TestFRD:
 
         ### Try same images but different masks
         paths_mask = [f"{path_a}_mask", f"{path_b}_mask"]
-        normalization_type = "minmax"
-        normalization_range = [0.0, 7.0]
+        norm_type = "minmax"
+        norm_range = [0.0, 7.0]
         try:
             paths = [path_a, path_a]
             frd_value = frd_score.calculate_frd_given_paths(
                 paths,
                 features,
-                normalization_type,
-                normalization_range,
-                is_mask_used=True,
+                norm_type,
+                norm_range,
                 paths_masks=paths_mask,
                 resize_size=None,
                 verbose=True,
                 save_features=False,
-                normalize_datasets_separately=True,
+                norm_sets_separately=True,
             )
             self.logger.warning(
                 f"FRD value 3D with masks (but same images), minmax normalized: {frd_value}"
@@ -265,14 +260,13 @@ class TestFRD:
             frd_value = frd_score.calculate_frd_given_paths(
                 paths,
                 features,
-                normalization_type,
-                normalization_range,
-                is_mask_used=True,
+                norm_type,
+                norm_range,
                 paths_masks=paths_mask,
                 resize_size=None,
                 verbose=True,
                 save_features=False,
-                normalize_datasets_separately=True,
+                norm_sets_separately=True,
             )
             self.logger.warning(
                 f"FRD value 3D with masks (but same images), minmax normalized: {frd_value}"

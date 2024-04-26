@@ -72,14 +72,6 @@ def parse_args() -> argparse.Namespace:
         help="The two paths to the folder where the mask file_lists are located.",
     )
 
-    parser.add_argument(
-        "-na",
-        "--normalize_across_datasets",
-        action="store_true",
-        help="If true, the normalization (e.g., minmax or zscore) as well as rescaling to normalization_range "
-             "will be done based on all features from both datasets (e.g. syn, real) instead of on the features from "
-             "each dataset separately.",
-    )
 
     parser.add_argument(
         "-f",
@@ -101,13 +93,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "-is_m",
-        "--is_mask_used",
-        action="store_true",
-        help="Generate radiomics based on either available mask or for the whole image.",
-    )
-
-    parser.add_argument(
         "-r",
         "--resize_size",
         type=int,
@@ -124,24 +109,33 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "-nr",
-        "--normalization_range",
+        "-R",
+        "--norm_range",
         nargs=2,
         type=float,
         default=[0., 7.45670747756958],
         help="The allowed value range of features. Based on these values the frd features will be "
         "normalized. The range should be [min, max]. Default is [0, 7.45670747756958]. "
-        "If normalization_type is 'zscore', we recommend ignoring normalization range by setting "
+        "If norm_type is 'zscore', we recommend ignoring normalization range by setting "
         "it to [0, 1].",
     )
 
     parser.add_argument(
-        "-nt",
-        "--normalization_type",
+        "-T",
+        "--norm_type",
         type=str,
         default="minmax",
         help="The strategy with which the frd features will be normalized. Can be 'minmax' "
         "or 'zscore'.",
+    )
+
+    parser.add_argument(
+        "-A",
+        "--norm_across",
+        action="store_true",
+        help="If true, the normalization (e.g., minmax or zscore) as well as rescaling to norm_range "
+             "will be done based on all features from both datasets (e.g. syn, real) instead of on the features from "
+             "each dataset separately.",
     )
 
     parser.add_argument(
@@ -160,7 +154,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "-sf",
+        "-F",
         "--save_features",
         action="store_true",
         help="Indicates whether radiomics feature values (normalized and non-normalized) should be stored in a csv file. "
@@ -174,7 +168,6 @@ def parse_args() -> argparse.Namespace:
 def get_activations(
     files,
     feature_extractor,
-    is_mask_used=True,
     masks=None,
     resize_size=None,
     verbose=False,
@@ -184,7 +177,6 @@ def get_activations(
     Params:
     -- file_lists       : List of image file_lists paths
     -- feature_extractor       : Instance of radiomics feature_extractor
-    -- is_mask_used : Boolean indicating whether mask_lists should be used for feature extraction
     -- mask_lists : The list of paths of the mask file_lists
     -- resize_size: In case the images should be resized before the radiomics features are calculated
     -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
@@ -199,29 +191,21 @@ def get_activations(
     radiomics_results = []
 
     for idx, file_path in enumerate(files):
+        image_paths.append(file_path)
         if masks is not None:
-            image_paths.append(file_path)
-            if not is_mask_used:
-                mask_paths.append(None)
-            else:
-                # Note: Sorting assumption here: Masks and images are in separate folders. Each image has a mask and
-                # mask and image file are named similarly enough that sorting assures correspondence between image and mask index positions.
-                try:
-                    mask_paths.append(masks[idx])
-                except IndexError as e:
-                    raise RuntimeError(
-                        f"Mask '{idx}' not found for image file '{file_path}'. "
-                        f"Please revise that for each image there is a mask present. "
-                        f"Ensure file names of image and mask correspond, as index position "
-                        f"correspondence is assumed after sorting both image and mask lists. "
-                        f"Exception: {e}"
-                    )
-
-        # elif "_mask" in str(file_path) or str(file_path).endswith("_mask.png") or str(file_path).endswith(
-        #        "_mask_synth.jpg"):
-        #    mask_paths.append(file_path)
+            # Note: Sorting assumption here: Masks and images are in separate folders. Each image has a mask and
+            # mask and image file are named similarly enough that sorting assures correspondence between image and mask index positions.
+            try:
+                mask_paths.append(masks[idx])
+            except IndexError as e:
+                raise RuntimeError(
+                    f"Mask '{idx}' not found for image file '{file_path}'. "
+                    f"Please revise that for each image there is a mask present. "
+                    f"Ensure file names of image and mask correspond, as index position "
+                    f"correspondence is assumed after sorting both image and mask lists. "
+                    f"Exception: {e}"
+                )
         else:
-            image_paths.append(file_path)
             mask_paths.append(None)
 
     total = len(image_paths)
@@ -507,12 +491,12 @@ def z_score_normalize(
             if std_val == 0 and strict:
                 raise ValueError(
                     f"Warning: While calculating z-score (idx={idx}), a standard deviation of 0 was detected for feature {feature_name} (mean: {mean_val}). Please check the data for constant values. "
-                    f"You may set normalization_type to 'minmax' to avoid this issue."
+                    f"You may set norm_type to 'minmax' to avoid this issue."
                 )
             if std_val == 0:
                 logging.warning(
                     f"Warning: While calculating z-score (idx={idx}), a standard deviation of 0 was detected for feature {feature_name} (mean: {mean_val}). Fallback: Now replacing these feature values with 0 + new_min. new_min={new_min}. "
-                    f"Alternatively, you may run again by setting normalization_type to 'minmax' to avoid this issue."
+                    f"Alternatively, you may run again by setting norm_type to 'minmax' to avoid this issue."
                 )
                 normalized_features[:, idx] = 0 + float(new_min)
             else:
@@ -578,23 +562,21 @@ def min_max_normalize(features, new_min, new_max, replace_nan=True, feature_name
 
 def calculate_activation_statistics(
     file_lists: list,
-    normalization_type: str,
-    normalization_range: list,
+    norm_type: str,
+    norm_range: list,
     feature_extractor,
-    is_mask_used: bool=True,
     mask_lists: list=[None, None],
     resize_size: int=None,
     verbose: bool=False,
     save_features: bool=False,
-    normalize_datasets_separately: bool=True,
+    norm_sets_separately: bool=True,
 ) -> (list,list):
     """Calculation of the statistics used by the FID.
     Params:
     -- file_lists                : List of image file_lists paths
-    -- normalization_type : The method with which the extracted features should be normalized
-    -- normalization_range : The range of normalization to scale the extracted features to after normalization
+    -- norm_type : The method with which the extracted features should be normalized
+    -- norm_range : The range of normalization to scale the extracted features to after normalization
     -- feature_extractor    : Instance of pyradiomics feature_extractor
-    -- is_mask_used : Boolean indicating whether mask_lists should be used for feature extraction
     -- mask_lists : The list of paths of the mask file_lists
     -- resize_size: In case the images should be resized before the radiomics features are calculated
     -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
@@ -610,7 +592,6 @@ def calculate_activation_statistics(
         act, radiomics_results, image_paths, mask_paths = get_activations(
             files=file_list,
             feature_extractor=feature_extractor,
-            is_mask_used=is_mask_used,
             masks=mask_lists[idx] if mask_lists is not None else None,
             resize_size=resize_size,
             verbose=verbose,
@@ -649,29 +630,29 @@ def calculate_activation_statistics(
     sigma_list = []
     normalized_feature_list = []
     base_distribution = None
-    if normalize_datasets_separately:
+    if norm_sets_separately:
         # Concatenate all features to calculate the normalization statistics
         base_distribution = np.concatenate(feature_list, axis=0)
     for idx, features in enumerate(feature_list):
-        if normalization_type == "minmax":
+        if norm_type == "minmax":
             normalized_features = min_max_normalize(
                     features=features,
-                    new_min=normalization_range[0],
-                    new_max=normalization_range[1],
+                    new_min=norm_range[0],
+                    new_max=norm_range[1],
                     feature_names=feature_names,
                     base_distribution=base_distribution,
             )
-        elif normalization_type == "zscore":
+        elif norm_type == "zscore":
             normalized_features = z_score_normalize(
                     features=features,
-                    new_min=normalization_range[0],
-                    new_max=normalization_range[1],
+                    new_min=norm_range[0],
+                    new_max=norm_range[1],
                     feature_names=feature_names,
                     base_distribution=base_distribution,
             )
         else:
             raise ValueError(
-                f"Normalization type {normalization_type} is not supported. "
+                f"Normalization type {norm_type} is not supported. "
                 f"Please use 'minmax' or 'zscore'."
             )
         mu_list.append(np.mean(normalized_features, axis=0))
@@ -707,15 +688,14 @@ def calculate_activation_statistics(
 
 def compute_statistics_of_paths(
     paths: list, # TODO
-    normalization_type: str,
-    normalization_range: list,
+    norm_type: str,
+    norm_range: list,
     feature_extractor,
-    is_mask_used=True,
     paths_mask: list=None,  # TODO
     resize_size=None,
     verbose=False,
     save_features=False,
-    normalize_datasets_separately=True,
+    norm_sets_separately=True,
 ):
     """Calculates the statistics later used to compute the Frechet Distance for a given paths (i.e. one of the two distributions)."""
 
@@ -752,15 +732,14 @@ def compute_statistics_of_paths(
 
         return calculate_activation_statistics(
             file_lists=file_lists,
-            normalization_type=normalization_type,
-            normalization_range=normalization_range,
+            norm_type=norm_type,
+            norm_range=norm_range,
             feature_extractor=feature_extractor,
-            is_mask_used=is_mask_used,
             mask_lists=mask_lists,
             resize_size=resize_size,
             verbose=verbose,
             save_features=save_features,
-            normalize_datasets_separately=normalize_datasets_separately,
+            norm_sets_separately=norm_sets_separately,
         )
 
 
@@ -792,14 +771,13 @@ def get_feature_extractor(features, settings_dict: dict = None):
 def calculate_frd_given_paths(
     paths,
     features,
-    normalization_type,
-    normalization_range,
-    is_mask_used=True,
+    norm_type,
+    norm_range,
     paths_masks=None,
     resize_size=None,
     verbose=False,
     save_features=True,
-    normalize_datasets_separately=True,
+    norm_sets_separately=True,
 ):
     """Calculates the FRD based on the statistics from the two paths (i.e. the two distributions)"""
 
@@ -807,26 +785,25 @@ def calculate_frd_given_paths(
         if not os.path.exists(p):
             raise RuntimeError(f"Invalid paths: {p}")
 
-    if not normalize_datasets_separately and '.npz' in paths[0]:
+    if not norm_sets_separately and '.npz' in paths[0]:
         raise ValueError(
             f"Normalization of datasets together is not supported when .npz file is provided. "
             f"In .npz file (normalized) statistics are already computed. "
-            f"Please set normalize_datasets_separately to True or use image paths instead of .npz files."
+            f"Please set norm_sets_separately to True or use image paths instead of .npz files."
         )
 
     feature_extractor = get_feature_extractor(features=features)
 
     mu_list, sigma_list = compute_statistics_of_paths(
         paths,
-        normalization_type,
-        normalization_range,
+        norm_type,
+        norm_range,
         feature_extractor,
-        is_mask_used=is_mask_used,
         paths_mask=None if paths_masks is None else paths_masks,
         resize_size=resize_size,
         verbose=verbose,
         save_features=save_features,
-        normalize_datasets_separately=normalize_datasets_separately,
+        norm_sets_separately=norm_sets_separately,
 
     )
 
@@ -842,9 +819,8 @@ def calculate_frd_given_paths(
 def save_frd_stats(
     paths,
     features,
-    normalization_type: str,
-    normalization_range: list,
-    is_mask_used=True,
+    norm_type: str,
+    norm_range: list,
     paths_masks=None,
     resize_size=None,
     verbose=False,
@@ -874,10 +850,9 @@ def save_frd_stats(
 
     mu_list, sigma_list = compute_statistics_of_paths(
         [paths[0]],
-        normalization_type=normalization_type,
-        normalization_range=normalization_range,
+        norm_type=norm_type,
+        norm_range=norm_range,
         feature_extractor=feature_extractor,
-        is_mask_used=is_mask_used,
         paths_mask=None if paths_masks is None else [paths_masks[0]],
         resize_size=resize_size,
         verbose=verbose,
@@ -904,9 +879,8 @@ def main():
         save_frd_stats(
             args.paths,
             features=features,
-            normalization_type=args.normalization_type,
-            normalization_range=args.normalization_range,
-            is_mask_used=args.is_mask_used,
+            norm_type=args.norm_type,
+            norm_range=args.norm_range,
             paths_masks=args.paths_masks,
             resize_size=args.resize_size,
             verbose=args.verbose,
@@ -917,19 +891,18 @@ def main():
     frd_value = calculate_frd_given_paths(
         args.paths,
         features=features,
-        normalization_type=args.normalization_type,
-        normalization_range=args.normalization_range,
-        is_mask_used=args.is_mask_used,
+        norm_type=args.norm_type,
+        norm_range=args.norm_range,
         paths_masks=args.paths_masks,
         resize_size=args.resize_size,
         verbose=args.verbose,
         save_features=args.save_features,
-        normalize_datasets_separately=not args.normalize_across_datasets,
+        norm_sets_separately=not args.norm_across,
     )
     # logging the result
     logging.info(
         f"Fréchet Radiomics Distance: {frd_value}. "
-        f"Based on features: {features} with normalization type: {args.normalization_type} and normalization range: {args.normalization_range} (was normalization done separately for each dataset? -> {not args.normalize_across_datasets}){f', with mask_lists: {args.paths_masks}' if args.is_mask_used else ''}{f', resized to {args.resize_size}' if args.resize_size is not None else ''}."
+        f"Based on features: {features} with normalization type: {args.norm_type} and normalization range: {args.norm_range} (was normalization done separately for each dataset? -> {not args.norm_across}), with mask_lists: {args.paths_masks}, resized to f'{args.resize_size if args.resize_size is not None else ''}."
     )
     print(f"FRD: {frd_value}")
 
