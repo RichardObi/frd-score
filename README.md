@@ -82,7 +82,7 @@ frd_value = frd_score.compute_frd(paths, paths_masks=paths_masks)
 As in [pytorch-fid](https://github.com/mseitzer/pytorch-fid), you can generate a compatible `.npz` archive of a dataset using the `--save-stats` flag. 
 You may use the `.npz` archive as dataset path, which can be useful to compare multiple models against an original dataset without recalculating the statistics multiple times.
 ```
-python -m pytorch_fid --save-stats path/to/dataset path/to/outputfile
+python -m frd --save-stats path/to/dataset path/to/npz_outputfile
 ```
 
 
