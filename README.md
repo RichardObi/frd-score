@@ -37,6 +37,8 @@ Requirements:
 
 ## Usage
 
+### Run via CLI:
+
 To compute the FID score between two datasets, where images of each dataset are contained in an individual folder:
 ```
 python -m frd path/to/dataset_A path/to/dataset_B
@@ -44,7 +46,18 @@ python -m frd path/to/dataset_A path/to/dataset_B
 
 If you would like to use masks to localize radiomics features, you can provide the path to the masks as follows:
 ```
-python -m frd path/to/dataset_A path/to/dataset_B -M path/to/mask_A path/to/mask_B --is_mask_used
+python -m frd path/to/dataset_A path/to/dataset_B -M path/to/mask_A path/to/mask_B
+```
+
+### Run in your code:
+If you would like to import frd as a module, you can use the following code snippet:
+```
+from frd import frd_score
+
+paths=['path/to/dataset_A', 'path/to/dataset_B']
+paths_masks=[path_mask_A, path_mask_B] # optionally, we can add masks.
+
+frd_score = frd_score.compute_frd(paths, paths_masks=paths_masks) 
 ```
 
 ## Additional arguments

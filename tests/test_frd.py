@@ -87,7 +87,7 @@ class TestFRD:
         # Test if this function raises error
         try:
             paths = [path_a, path_b]
-            frd_value = frd_score.calculate_frd_given_paths(
+            frd_value = frd_score.compute_frd(
                 paths,
                 features,
                 norm_type,
@@ -158,7 +158,7 @@ class TestFRD:
         try:
             # Should get very high FRD value
             paths = [path_a, path_b]
-            frd_value = frd_score.calculate_frd_given_paths(
+            frd_value = frd_score.compute_frd(
                 paths,
                 features,
                 norm_type,
@@ -182,7 +182,7 @@ class TestFRD:
             paths = [path_a, path_a]
             norm_type = "minmax"
             norm_range = [0.0, 5.0]
-            frd_value = frd_score.calculate_frd_given_paths(
+            frd_value = frd_score.compute_frd(
                 paths,
                 features,
                 norm_type,
@@ -234,7 +234,7 @@ class TestFRD:
         norm_range = [0.0, 7.0]
         try:
             paths = [path_a, path_a]
-            frd_value = frd_score.calculate_frd_given_paths(
+            frd_value = frd_score.compute_frd(
                 paths,
                 features,
                 norm_type,
@@ -257,7 +257,7 @@ class TestFRD:
         ### Try different images with different masks
         try:
             paths = [path_a, path_b]
-            frd_value = frd_score.calculate_frd_given_paths(
+            frd_value = frd_score.compute_frd(
                 paths,
                 features,
                 norm_type,

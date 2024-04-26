@@ -768,18 +768,31 @@ def get_feature_extractor(features, settings_dict: dict = None):
     return featureextractor.RadiomicsFeatureExtractor(settings)
 
 
-def calculate_frd_given_paths(
+def compute_frd(
     paths,
-    features,
-    norm_type,
-    norm_range,
+    features = ["firstorder", "glcm", "glrlm", "gldm", "glszm", "ngtdm", "shape", "shape2D"],
+    norm_type = "minmax",
+    norm_range = [0., 7.45670747756958],
     paths_masks=None,
     resize_size=None,
     verbose=False,
     save_features=True,
     norm_sets_separately=True,
 ):
-    """Calculates the FRD based on the statistics from the two paths (i.e. the two distributions)"""
+    """Calculates the FRD based on the statistics from the two paths (i.e. the two distributions)
+        Params:
+    -- paths                : List of two paths to folders where images are stored representing the two distributions
+    -- features             : The radiomics feature types to be extracted
+    -- norm_type            : The method with which the extracted features should be normalized
+    -- norm_range           : The range of normalization to scale the extracted features to after normalization
+    -- paths_masks          : List of two paths to folders where segmentation masks are stored (name same as corresponding images).
+    -- resize_size          : In case the images should be resized before the radiomics features are calculated
+    -- verbose              : Indicates the verbosity level of the logging. If true, more info is logged to console.
+    -- save_features        : Indicates whether the extracted features (original and normalized) should be saved to a csv file.
+    -- norm_sets_separately : If true, indicates that the normalization should be done separately for the two sets of images.
+
+    This function may be imported and called from other scripts to compute the FRD.
+    """
 
     for p in paths:
         if not os.path.exists(p):
@@ -807,11 +820,13 @@ def calculate_frd_given_paths(
 
     )
 
-    if verbose:
-        logging.debug(f"mu_list: {mu_list}, sigma_list: {sigma_list}")
+    if verbose: logging.debug(f"mu_list: {mu_list}, sigma_list: {sigma_list}")
 
     # Note: Assumption that len mu_list and len sigma_list is 2
     frd_value = calculate_frechet_distance(mu_list[0], sigma_list[0], mu_list[1], sigma_list[2])
+
+    # Print this here instead of main() as compute_frd function may be used in other scripts as opposed to cmd line
+    print(f"FRD: {frd_value}")
 
     return frd_value
 
@@ -888,7 +903,7 @@ def main():
         )
         return
 
-    frd_value = calculate_frd_given_paths(
+    frd_value = compute_frd(
         args.paths,
         features=features,
         norm_type=args.norm_type,
@@ -904,8 +919,6 @@ def main():
         f"Fréchet Radiomics Distance: {frd_value}. "
         f"Based on features: {features} with normalization type: {args.norm_type} and normalization range: {args.norm_range} (was normalization done separately for each dataset? -> {not args.norm_across}), with mask_lists: {args.paths_masks}, resized to f'{args.resize_size if args.resize_size is not None else ''}."
     )
-    print(f"FRD: {frd_value}")
-
 
 if __name__ == "__main__":
     main()
