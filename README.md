@@ -57,7 +57,7 @@ from frd import frd_score
 paths=['path/to/dataset_A', 'path/to/dataset_B']
 paths_masks=[path_mask_A, path_mask_B] # optionally, we can add masks.
 
-frd_score = frd_score.compute_frd(paths, paths_masks=paths_masks) 
+frd_value = frd_score.compute_frd(paths, paths_masks=paths_masks) 
 ```
 
 ## Additional arguments
