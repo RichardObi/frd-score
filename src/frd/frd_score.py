@@ -185,7 +185,7 @@ def get_activations(
     -- A numpy array of dimension (num images, num_features) that contains the
        extracted features of the given query image (optionally, alongside a respective segmentation mask).
     """
-
+    prediction_array = None
     image_paths = []
     mask_paths = []
     radiomics_results = []
@@ -324,8 +324,12 @@ def get_activations(
         num_features = len(sample_dict)
         if verbose:
             logging.info(f"Number of radiomics features: {num_features}")
+    try:
+        prediction_array = pred_arr
+    except NameError:
+        pass
 
-    return pred_arr, radiomics_results, image_paths, mask_paths
+    return prediction_array, radiomics_results, image_paths, mask_paths
 
 
 def resize_image_array(sitk_image_array, resize_size, interpolation=cv2.INTER_LINEAR):
