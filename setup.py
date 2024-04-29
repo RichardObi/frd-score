@@ -14,7 +14,7 @@ def read(rel_path):
 def get_version(rel_path):
     for line in read(rel_path).splitlines():
         if line.startswith("__version__"):
-            # __version__ = "0.9"
+            # __version__ = "0.0.1"
             delim = '"' if '"' in line else "'"
             return line.split(delim)[1]
 
@@ -30,8 +30,10 @@ if __name__ == "__main__":
             "Package for calculating Fréchet Radiomics Distance (FRD)"
         ),
         long_description=read("README.md"),
+        license="Apache-2.0",
         long_description_content_type="text/markdown",
         url="https://github.com/RichardObi/frd",
+        download_url="https://github.com/RichardObi/frd/archive/refs/tags/v0.0.1.tar.gz",
         project_urls={
             "Bug Tracker": "https://github.com/RichardObi/frd/issues",
         },
@@ -41,7 +43,8 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3",
             "License :: OSI Approved :: Apache Software License",
         ],
-        python_requires=">=3.5",
+        keywords=['Radiomics', 'Frechet', 'Distance', 'medical', 'imaging', 'radiology', 'generative', 'synthetic', 'evaluation'],
+        python_requires=">=3.8",
         entry_points={
             "console_scripts": [
                 "frd = frd.frd_score:main",
