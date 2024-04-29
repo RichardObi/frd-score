@@ -165,14 +165,14 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def get_activations(
+def compute_features(
     files,
     feature_extractor,
     masks=None,
     resize_size=None,
     verbose=False,
 ):
-    """Calculates the activations of the pool_3 layer for all images.
+    """Calculates the features of the given query image (optionally, alongside a respective segmentation mask).
 
     Params:
     -- file_lists       : List of image file_lists paths
@@ -313,10 +313,7 @@ def get_activations(
                 )
 
             pred_arr[i] = list(radiomics_features.values())
-            if verbose:
-                logging.debug(
-                    f"Total number of features extracted for image {i}: {len(pred_arr[i])}"
-                )
+            if verbose:logging.debug(f"Total number of features extracted for image {i}: {len(pred_arr[i])}")
             pbar.update(1)
 
     if radiomics_results:
@@ -419,8 +416,8 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     Params:
     -- mu1   : Numpy array containing the features of the first set of samples.
     -- mu2   : Numpy array containing the features of the second set of samples.
-    -- sigma1: The covariance matrix over activations for the first set of samples.
-    -- sigma2: The covariance matrix over activations for the second set of samples.
+    -- sigma1: The covariance matrix over features for the first set of samples.
+    -- sigma2: The covariance matrix over features for the second set of samples.
 
     Returns:
     --   : The Frechet Distance.
@@ -564,7 +561,7 @@ def min_max_normalize(features, new_min, new_max, replace_nan=True, feature_name
     return normalized_features
 
 
-def calculate_activation_statistics(
+def calculate_feature_statistics(
     file_lists: list,
     norm_type: str,
     norm_range: list,
@@ -593,7 +590,7 @@ def calculate_activation_statistics(
     feature_list = []
 
     for idx, file_list in enumerate(file_lists):
-        act, radiomics_results, image_paths, mask_paths = get_activations(
+        features, radiomics_results, image_paths, mask_paths = compute_features(
             files=file_list,
             feature_extractor=feature_extractor,
             masks=mask_lists[idx] if mask_lists is not None else None,
@@ -601,12 +598,10 @@ def calculate_activation_statistics(
             verbose=verbose,
         )
         if verbose:
-            logging.debug(f"features of radiomics: {act}")
-            logging.debug(f"features of radiomics shape: {type(act)}")
+            logging.debug(f"features of radiomics: {features}")
+            logging.debug(f"features of radiomics shape: {type(features)}")
 
         # to check NaN values in features
-        features = act
-
         if np.isnan(features).any():
             nan_indices = np.where(np.isnan(features))
             unique_nan_indices = np.unique(nan_indices[1])
@@ -734,7 +729,7 @@ def compute_statistics_of_paths(
             if verbose:
                 logging.debug(f"file_lists in compute_statistics_of_path: {file_lists}")
 
-        return calculate_activation_statistics(
+        return calculate_feature_statistics(
             file_lists=file_lists,
             norm_type=norm_type,
             norm_range=norm_range,
