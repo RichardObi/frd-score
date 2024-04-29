@@ -70,11 +70,10 @@ def parse_args() -> argparse.Namespace:
         help="The two paths to the folder where the mask file_lists are located.",
     )
 
-
     parser.add_argument(
         "-f",
         "--feature_groups",
-        nargs='+',
+        nargs="+",
         type=str,
         default=[
             "firstorder",
@@ -95,7 +94,7 @@ def parse_args() -> argparse.Namespace:
         "--resize_size",
         type=int,
         default=None,
-        help="In case the input images (and mask_lists) are to be resized to a specific pixel dimension. "
+        help="In case the input images (and mask_lists) are to be resized to a specific pixel dimension. ",
     )
 
     parser.add_argument(
@@ -111,7 +110,7 @@ def parse_args() -> argparse.Namespace:
         "--norm_range",
         nargs=2,
         type=float,
-        default=[0., 7.45670747756958],
+        default=[0.0, 7.45670747756958],
         help="The allowed value range of features. Based on these values the frd features will be "
         "normalized. The range should be [min, max]. Default is [0, 7.45670747756958]. "
         "If norm_type is 'zscore', we recommend ignoring normalization range by setting "
@@ -132,8 +131,8 @@ def parse_args() -> argparse.Namespace:
         "--norm_across",
         action="store_true",
         help="If true, the normalization (e.g., minmax or zscore) as well as rescaling to norm_range "
-             "will be done based on all features from both datasets (e.g. syn, real) instead of on the features from "
-             "each dataset separately.",
+        "will be done based on all features from both datasets (e.g. syn, real) instead of on the features from "
+        "each dataset separately.",
     )
 
     parser.add_argument(
@@ -210,7 +209,9 @@ def compute_features(
 
     with tqdm(total=total) as pbar:
         for i, (image_path, mask_path) in enumerate(zip(image_paths, mask_paths)):
-            sitk_image = sitk.ReadImage(str(image_path), outputPixelType=sitk.sitkFloat32)
+            sitk_image = sitk.ReadImage(
+                str(image_path), outputPixelType=sitk.sitkFloat32
+            )
             if mask_path is None:
                 # https://discourse.slicer.org/t/features-extraction/11047/3
                 ma_arr = np.ones(sitk_image.GetSize()[::-1]).astype(
@@ -251,7 +252,9 @@ def compute_features(
                     sitk_image_resized.CopyInformation(sitk_image)
                 except:
                     pass
-                sitk_image = sitk_image_resized  # Update the image to the resized version
+                sitk_image = (
+                    sitk_image_resized  # Update the image to the resized version
+                )
 
                 sitk_mask_array = sitk.GetArrayViewFromImage(sitk_mask)
                 sitk_mask_array_resized = resize_image_array(
@@ -311,7 +314,10 @@ def compute_features(
                 )
 
             pred_arr[i] = list(radiomics_features.values())
-            if verbose:logging.debug(f"Total number of features extracted for image {i}: {len(pred_arr[i])}")
+            if verbose:
+                logging.debug(
+                    f"Total number of features extracted for image {i}: {len(pred_arr[i])}"
+                )
             pbar.update(1)
 
     if radiomics_results and verbose:
@@ -319,7 +325,10 @@ def compute_features(
     try:
         prediction_array = pred_arr
     except NameError:
-        pass
+        logging.warning(
+            f"Error: No features extracted from the image files in the dataset {idx}. "
+            f"Last extracted radiomics features were: {radiomics_results[-1]} "
+        )
 
     return prediction_array, radiomics_results, image_paths, mask_paths
 
@@ -457,12 +466,26 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
 
 def z_score_normalize(
-    features, new_min=0, new_max=1, replace_nan=True, strict=False, feature_names=None, base_distribution=None,
+    features,
+    new_min=0,
+    new_max=1,
+    replace_nan=True,
+    strict=False,
+    feature_names=None,
+    base_distribution=None,
 ):
     """Calculate the z score normalisation values of each feature across all images"""
 
-    mean_values = np.nanmean(features, axis=0) if base_distribution is None else np.nanmean(base_distribution, axis=0)
-    std_values = np.nanstd(features, axis=0) if base_distribution is None else np.nanstd(base_distribution, axis=0)
+    mean_values = (
+        np.nanmean(features, axis=0)
+        if base_distribution is None
+        else np.nanmean(base_distribution, axis=0)
+    )
+    std_values = (
+        np.nanstd(features, axis=0)
+        if base_distribution is None
+        else np.nanstd(base_distribution, axis=0)
+    )
 
     # Create a new copy of features to perform normalization
     normalized_features = np.copy(features)
@@ -512,11 +535,26 @@ def z_score_normalize(
     return normalized_features
 
 
-def min_max_normalize(features, new_min, new_max, replace_nan=True, feature_names=None, base_distribution=None):
+def min_max_normalize(
+    features,
+    new_min,
+    new_max,
+    replace_nan=True,
+    feature_names=None,
+    base_distribution=None,
+):
     """Calculate the minimum and maximum values of each feature across all images"""
 
-    min_values = np.nanmin(features, axis=0) if base_distribution is None else np.nanmin(base_distribution, axis=0)
-    max_values = np.nanmax(features, axis=0) if base_distribution is None else np.nanmax(base_distribution, axis=0)
+    min_values = (
+        np.nanmin(features, axis=0)
+        if base_distribution is None
+        else np.nanmin(base_distribution, axis=0)
+    )
+    max_values = (
+        np.nanmax(features, axis=0)
+        if base_distribution is None
+        else np.nanmax(base_distribution, axis=0)
+    )
 
     # Create a new copy of features to perform normalization
     normalized_features = np.copy(features)
@@ -561,12 +599,12 @@ def calculate_feature_statistics(
     norm_type: str,
     norm_range: list,
     feature_extractor,
-    mask_lists: list=[None, None],
-    resize_size: int=None,
-    verbose: bool=False,
-    save_features: bool=False,
-    norm_sets_separately: bool=True,
-) -> (list,list):
+    mask_lists: list = [None, None],
+    resize_size: int = None,
+    verbose: bool = False,
+    save_features: bool = False,
+    norm_sets_separately: bool = True,
+) -> (list, list):
     """Calculation of the statistics used by the FRD.
     Params:
     -- file_lists                : List of image file_lists paths
@@ -594,7 +632,7 @@ def calculate_feature_statistics(
         )
         if verbose:
             logging.debug(f"features of radiomics: {features}")
-            logging.debug(f"features of radiomics shape: {type(features)}")
+            logging.info(f"features of radiomics shape: {type(features)}")
 
         # to check NaN values in features
         if np.isnan(features).any():
@@ -630,19 +668,19 @@ def calculate_feature_statistics(
     for idx, features in enumerate(feature_list):
         if norm_type == "minmax":
             normalized_features = min_max_normalize(
-                    features=features,
-                    new_min=norm_range[0],
-                    new_max=norm_range[1],
-                    feature_names=feature_names,
-                    base_distribution=base_distribution,
+                features=features,
+                new_min=norm_range[0],
+                new_max=norm_range[1],
+                feature_names=feature_names,
+                base_distribution=base_distribution,
             )
         elif norm_type == "zscore":
             normalized_features = z_score_normalize(
-                    features=features,
-                    new_min=norm_range[0],
-                    new_max=norm_range[1],
-                    feature_names=feature_names,
-                    base_distribution=base_distribution,
+                features=features,
+                new_min=norm_range[0],
+                new_max=norm_range[1],
+                feature_names=feature_names,
+                base_distribution=base_distribution,
             )
         else:
             raise ValueError(
@@ -674,18 +712,22 @@ def calculate_feature_statistics(
                 storage_dir,
                 f"radiomics_set{idx}_results_normalized_{folder_name}_{unique_identifier}.csv",
             )
-            save_features_to_csv(csv_file_path, image_paths, mask_paths, radiomics_results)
-            save_features_to_csv(norm_csv_file_path, image_paths, mask_paths, radiomics_results)
+            save_features_to_csv(
+                csv_file_path, image_paths, mask_paths, radiomics_results
+            )
+            save_features_to_csv(
+                norm_csv_file_path, image_paths, mask_paths, radiomics_results
+            )
 
     return mu_list, sigma_list
 
 
 def compute_statistics_of_paths(
-    paths: list, # TODO
+    paths: list,  # TODO
     norm_type: str,
     norm_range: list,
     feature_extractor,
-    paths_mask: list=None,  # TODO
+    paths_mask: list = None,  # TODO
     resize_size=None,
     verbose=False,
     save_features=False,
@@ -701,8 +743,14 @@ def compute_statistics_of_paths(
         mask_lists = []
         for path in paths:
             path = pathlib.Path(path)
-            file_lists.append(sorted(
-                [file for ext in IMAGE_EXTENSIONS for file in path.glob("*.{}".format(ext))])
+            file_lists.append(
+                sorted(
+                    [
+                        file
+                        for ext in IMAGE_EXTENSIONS
+                        for file in path.glob("*.{}".format(ext))
+                    ]
+                )
             )
         if paths_mask is not None:
             for path_mask in paths_mask:
@@ -712,13 +760,15 @@ def compute_statistics_of_paths(
                     path_mask = pathlib.Path(path_mask)
                     # Assumption: Each file in image dir has a corresponding file in mask dir with name
                     # similar enough to ensure correspondence via sorting
-                    mask_lists.append(sorted(
-                        [
-                            mask
-                            for ext in IMAGE_EXTENSIONS
-                            for mask in path_mask.glob("*.{}".format(ext))
-                        ]
-                    ))
+                    mask_lists.append(
+                        sorted(
+                            [
+                                mask
+                                for ext in IMAGE_EXTENSIONS
+                                for mask in path_mask.glob("*.{}".format(ext))
+                            ]
+                        )
+                    )
         else:
             mask_lists = [None, None]
             if verbose:
@@ -764,9 +814,18 @@ def get_feature_extractor(features, settings_dict: dict = None):
 
 def compute_frd(
     paths,
-    features = ["firstorder", "glcm", "glrlm", "gldm", "glszm", "ngtdm", "shape", "shape2D"],
-    norm_type = "minmax",
-    norm_range = [0., 7.45670747756958],
+    features=[
+        "firstorder",
+        "glcm",
+        "glrlm",
+        "gldm",
+        "glszm",
+        "ngtdm",
+        "shape",
+        "shape2D",
+    ],
+    norm_type="minmax",
+    norm_range=[0.0, 7.45670747756958],
     paths_masks=None,
     resize_size=None,
     verbose=False,
@@ -792,7 +851,7 @@ def compute_frd(
         if not os.path.exists(p):
             raise RuntimeError(f"Invalid paths: {p}")
 
-    if not norm_sets_separately and '.npz' in paths[0]:
+    if not norm_sets_separately and ".npz" in paths[0]:
         raise ValueError(
             f"Normalization of datasets together is not supported when .npz file is provided. "
             f"In .npz file (normalized) statistics are already computed. "
@@ -811,13 +870,15 @@ def compute_frd(
         verbose=verbose,
         save_features=save_features,
         norm_sets_separately=norm_sets_separately,
-
     )
 
-    if verbose: logging.debug(f"mu_list: {mu_list}, sigma_list: {sigma_list}")
+    if verbose:
+        logging.debug(f"mu_list: {mu_list}, sigma_list: {sigma_list}")
 
     # Note: Assumption that len mu_list and len sigma_list is 2
-    frd_value = calculate_frechet_distance(mu_list[0], sigma_list[0], mu_list[1], sigma_list[1])
+    frd_value = calculate_frechet_distance(
+        mu_list[0], sigma_list[0], mu_list[1], sigma_list[1]
+    )
 
     # Print this here instead of main() as compute_frd function may be used in other scripts as opposed to cmd line
     print(f"FRD: {frd_value}")
@@ -913,6 +974,7 @@ def main():
         f"Fréchet Radiomics Distance: {frd_value}. "
         f"Based on features: {features} with normalization type: {args.norm_type} and normalization range: {args.norm_range} (was normalization done separately for each dataset? -> {not args.norm_across}), with mask_lists: {args.paths_masks}, resized to f'{args.resize_size if args.resize_size is not None else ''}."
     )
+
 
 if __name__ == "__main__":
     main()

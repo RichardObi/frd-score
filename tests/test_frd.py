@@ -249,8 +249,8 @@ class TestFRD:
                 f"FRD value 3D with masks (but same images), minmax normalized: {frd_value}"
             )
             assert (
-                frd_value != 0.0
-            ), f"FRD 3D with masks should not be 0, as we are comparing different images (and different masks). Got: {frd_value}"
+                frd_value > 1.0
+            ), f"FRD 3D with masks should be >1.0, as we are comparing different images (with different masks). Got: {frd_value}"
         except Exception as e:
             raise e
 
