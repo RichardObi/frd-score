@@ -22,12 +22,10 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import SimpleITK as sitk
-
-from radiomics import featureextractor
 from scipy import linalg
 from tqdm import tqdm
-
+from radiomics import featureextractor
+import SimpleITK as sitk
 
 # Define allowed image extensions
 IMAGE_EXTENSIONS = {
@@ -234,7 +232,7 @@ def compute_features(
                 sitk_mask = sitk.ReadImage(str(mask_path))
 
             # Check if the mask is in range [0, 255] and rescale it to [0, 1]
-            if np.max(sitk.GetArrayFromImage(sitk_mask)) == 255:
+            if np.max(sitk.GetArrayViewFromImage(sitk_mask)) == 255:
                 sitk_mask = sitk.Cast(sitk_mask, sitk.sitkFloat32) / 255.0
 
             if verbose and i % 100 == 0:
@@ -244,7 +242,7 @@ def compute_features(
                 )
 
             if resize_size is not None:
-                sitk_image_array = sitk.GetArrayFromImage(sitk_image)
+                sitk_image_array = sitk.GetArrayViewFromImage(sitk_image)
                 sitk_image_array_resized = resize_image_array(
                     sitk_image_array, resize_size, interpolation=cv2.INTER_LINEAR
                 )
@@ -255,7 +253,7 @@ def compute_features(
                     pass
                 sitk_image = sitk_image_resized  # Update the image to the resized version
 
-                sitk_mask_array = sitk.GetArrayFromImage(sitk_mask)
+                sitk_mask_array = sitk.GetArrayViewFromImage(sitk_mask)
                 sitk_mask_array_resized = resize_image_array(
                     sitk_mask_array, resize_size, interpolation=cv2.INTER_LINEAR
                 )
@@ -270,7 +268,7 @@ def compute_features(
                 sitk_mask = sitk_mask_resized
 
             # Check if the mask contains only one voxel. This needs to be done before and after resizing as the mask
-            if np.sum(sitk.GetArrayFromImage(sitk_mask)) <= 1:
+            if np.sum(sitk.GetArrayViewFromImage(sitk_mask)) <= 1:
                 if verbose:
                     logging.info(
                         f"Skipping mask (after potentially having applied resizing to {resize_size}) with only one segmented voxel:",
@@ -282,10 +280,10 @@ def compute_features(
             try:
                 output = feature_extractor.execute(sitk_image, sitk_mask)
             except Exception as e:
-                logging.debug(f"sitk_mask: {(sitk.GetArrayFromImage(sitk_mask))}")
-                logging.debug(f"sitk_image: {(sitk.GetArrayFromImage(sitk_image))}")
+                logging.debug(f"sitk_mask: {(sitk.GetArrayViewFromImage(sitk_mask))}")
+                logging.debug(f"sitk_image: {(sitk.GetArrayViewFromImage(sitk_image))}")
                 logging.debug(
-                    f"shape sitk_mask: {(sitk.GetArrayFromImage(sitk_mask)).shape} and shape sitk_image: {(sitk.GetArrayFromImage(sitk_image)).shape}"
+                    f"shape sitk_mask: {(sitk.GetArrayViewFromImage(sitk_mask)).shape} and shape sitk_image: {(sitk.GetArrayViewFromImage(sitk_image)).shape}"
                 )
                 logging.error(
                     f"Error occurred while extracting features for image {i} from image {image_path} and mask {mask_path}: {e}"
@@ -300,7 +298,7 @@ def compute_features(
             radiomics_results.append(radiomics_features)
             if verbose:
                 logging.debug(
-                    f"img_shape:{sitk.GetArrayFromImage(sitk_image).shape}, features: {len(list(radiomics_features.values()))}"
+                    f"img_shape:{sitk.GetArrayViewFromImage(sitk_image).shape}, features: {len(list(radiomics_features.values()))}"
                 )
 
             try:
@@ -316,11 +314,8 @@ def compute_features(
             if verbose:logging.debug(f"Total number of features extracted for image {i}: {len(pred_arr[i])}")
             pbar.update(1)
 
-    if radiomics_results:
-        sample_dict = radiomics_results[0]
-        num_features = len(sample_dict)
-        if verbose:
-            logging.info(f"Number of radiomics features: {num_features}")
+    if radiomics_results and verbose:
+        logging.info(f"Number of radiomics features: {len(radiomics_results[0])}")
     try:
         prediction_array = pred_arr
     except NameError:
@@ -442,7 +437,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
         msg = (
-            "fid calculation produces singular product; "
+            "frechet distance calculation produces singular product; "
             "adding %s to diagonal of cov estimates"
         ) % eps
         logging.debug(msg)
@@ -572,7 +567,7 @@ def calculate_feature_statistics(
     save_features: bool=False,
     norm_sets_separately: bool=True,
 ) -> (list,list):
-    """Calculation of the statistics used by the FID.
+    """Calculation of the statistics used by the FRD.
     Params:
     -- file_lists                : List of image file_lists paths
     -- norm_type : The method with which the extracted features should be normalized
@@ -860,7 +855,7 @@ def save_frd_stats(
     feature_extractor = get_feature_extractor(features=features)
 
     if verbose:
-        logging.info(f"Nowe computing and calculating statistics for {paths}")
+        logging.info(f"Now computing and calculating statistics for {paths}")
 
     mu_list, sigma_list = compute_statistics_of_paths(
         [paths[0]],
