@@ -1,4 +1,4 @@
-<!---[![PyPI](https://img.shields.io/pypi/v/frd.svg)](https://pypi.org/project/frd/)--->
+<!---[![PyPI](https://img.shields.io/pypi/v/frd-score.svg)](https://pypi.org/project/frd-score/)--->
 
 # Fréchet Radiomics Distance (FRD)
 
@@ -18,11 +18,11 @@ In general, the variability (e.g. measured via FRD) of imaging biomarkers (e.g. 
 
 ## Installation
 
-<!--- Install from [pip](https://pypi.org/project/frd/): --->
+<!--- Install from [pip](https://pypi.org/project/frd-score/): --->
 Install frd:
 
 ```
-pip install git+https://github.com/RichardObi/frd
+pip install frd-score
 ```
 
 Requirements:
@@ -41,23 +41,23 @@ Requirements:
 
 To compute the FID score between two datasets, where images of each dataset are contained in an individual folder:
 ```
-python -m frd path/to/dataset_A path/to/dataset_B
+python -m frd_score path/to/dataset_A path/to/dataset_B
 ```
 
 If you would like to use masks to localize radiomics features, you can provide the path to the masks as follows:
 ```
-python -m frd path/to/dataset_A path/to/dataset_B -M path/to/mask_A path/to/mask_B
+python -m frd_score path/to/dataset_A path/to/dataset_B -M path/to/mask_A path/to/mask_B
 ```
 
 ### Run in your code:
 If you would like to import frd as a module, you can use the following code snippet:
 ```
-from frd import frd_score
+from frd_score import frd
 
 paths=['path/to/dataset_A', 'path/to/dataset_B']
 paths_masks=[path_mask_A, path_mask_B] # optionally, we can add masks.
 
-frd_value = frd_score.compute_frd(paths, paths_masks=paths_masks) 
+frd_value = frd.compute_frd(paths, paths_masks=paths_masks) 
 ```
 
 ## Additional arguments
@@ -78,11 +78,13 @@ frd_value = frd_score.compute_frd(paths, paths_masks=paths_masks)
 
 `--verbose` or `-v`: You may enable more detailed logging.info and logging.debug console logs by providing the `verbose` argument.
 
+`--num_workers` or `-w`: The number of cpu workers used for multiprocessing during feature extraction. If set to None, then the system's number of available cpu cores minus 2 will be taken as default (1 is the minimum value for num_workers).
+
 `--save-stats` or `-s`:
 As in [pytorch-fid](https://github.com/mseitzer/pytorch-fid), you can generate a compatible `.npz` archive of a dataset using the `--save-stats` flag. 
 You may use the `.npz` archive as dataset path, which can be useful to compare multiple models against an original dataset without recalculating the statistics multiple times.
 ```
-python -m frd --save-stats path/to/dataset path/to/npz_outputfile
+python -m frd_score --save-stats path/to/dataset path/to/npz_outputfile
 ```
 
 

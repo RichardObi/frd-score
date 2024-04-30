@@ -19,6 +19,10 @@ import os
 import pathlib
 import time
 from pathlib import Path
+import multiprocessing as mp
+from functools import partial
+
+
 
 import cv2
 import numpy as np
@@ -158,180 +162,17 @@ def parse_args() -> argparse.Namespace:
         "This can be useful for reproducibility and interpretability.",
     )
 
+    parser.add_argument(
+        "-w",
+        "--num_workers",
+        type=int,
+        default=None,
+        help="The number of cpu workers used for multiprocessing during feature extraction. "
+             "If set to None, then the system's number of available cpu cores minus 2 will be taken as default. ",
+    )
+
     args = parser.parse_args()
     return args
-
-
-def compute_features(
-    files,
-    feature_extractor,
-    masks=None,
-    resize_size=None,
-    verbose=False,
-):
-    """Calculates the features of the given query image (optionally, alongside a respective segmentation mask).
-
-    Params:
-    -- file_lists       : List of image file_lists paths
-    -- feature_extractor       : Instance of radiomics feature_extractor
-    -- mask_lists : The list of paths of the mask file_lists
-    -- resize_size: In case the images should be resized before the radiomics features are calculated
-    -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
-
-    Returns:
-    -- A numpy array of dimension (num images, num_features) that contains the
-       extracted features of the given query image (optionally, alongside a respective segmentation mask).
-    """
-    prediction_array = None
-    image_paths = []
-    mask_paths = []
-    radiomics_results = []
-
-    for idx, file_path in enumerate(files):
-        image_paths.append(file_path)
-        if masks is not None:
-            # Note: Sorting assumption here: Masks and images are in separate folders. Each image has a mask and
-            # mask and image file are named similarly enough that sorting assures correspondence between image and mask index positions.
-            try:
-                mask_paths.append(masks[idx])
-            except IndexError as e:
-                raise RuntimeError(
-                    f"Mask '{idx}' not found for image file '{file_path}'. "
-                    f"Please revise that for each image there is a mask present. "
-                    f"Ensure file names of image and mask correspond, as index position "
-                    f"correspondence is assumed after sorting both image and mask lists. "
-                    f"Exception: {e}"
-                )
-        else:
-            mask_paths.append(None)
-
-    total = len(image_paths)
-
-    with tqdm(total=total) as pbar:
-        for i, (image_path, mask_path) in enumerate(zip(image_paths, mask_paths)):
-            sitk_image = sitk.ReadImage(
-                str(image_path), outputPixelType=sitk.sitkFloat32
-            )
-            if mask_path is None:
-                # https://discourse.slicer.org/t/features-extraction/11047/3
-                ma_arr = np.ones(sitk_image.GetSize()[::-1]).astype(
-                    np.uint8
-                )  # reverse the order as image is xyz, array is zyx
-                sitk_mask = sitk.GetImageFromArray(ma_arr)
-                try:
-                    sitk_mask.CopyInformation(sitk_image)  # Copy geometric info
-                except Exception as e:
-                    logging.debug(
-                        f"Error while trying to copy information from image to mask: {e}"
-                    )
-                    pass
-                if verbose:
-                    logging.debug(
-                        "Empty mask (true everywhere) is used for feature extraction."
-                    )
-            else:
-                sitk_mask = sitk.ReadImage(str(mask_path))
-
-            # Check if the mask is in range [0, 255] and rescale it to [0, 1]
-            if np.max(sitk.GetArrayViewFromImage(sitk_mask)) == 255:
-                sitk_mask = sitk.Cast(sitk_mask, sitk.sitkFloat32) / 255.0
-
-            if verbose and i % 100 == 0:
-                # get some logging.infos to check the progress and if everything is working
-                logging.info(
-                    f"Now processing corresponding image-mask pair (IMG:{image_path}, MASK: {mask_path}. Do these correspond?"
-                )
-
-            if resize_size is not None:
-                sitk_image_array = sitk.GetArrayViewFromImage(sitk_image)
-                sitk_image_array_resized = resize_image_array(
-                    sitk_image_array, resize_size, interpolation=cv2.INTER_LINEAR
-                )
-                sitk_image_resized = sitk.GetImageFromArray(sitk_image_array_resized)
-                try:
-                    sitk_image_resized.CopyInformation(sitk_image)
-                except:
-                    pass
-                sitk_image = (
-                    sitk_image_resized  # Update the image to the resized version
-                )
-
-                sitk_mask_array = sitk.GetArrayViewFromImage(sitk_mask)
-                sitk_mask_array_resized = resize_image_array(
-                    sitk_mask_array, resize_size, interpolation=cv2.INTER_LINEAR
-                )
-                # After resizing, set all values above 0.5 to 1 and all values below to 0
-                sitk_mask_array_resized[sitk_mask_array_resized > 0.5] = 1
-                sitk_mask_array_resized[sitk_mask_array_resized <= 0.5] = 0
-                sitk_mask_resized = sitk.GetImageFromArray(sitk_mask_array_resized)
-                try:
-                    sitk_mask_resized.CopyInformation(sitk_mask)
-                except:
-                    pass
-                sitk_mask = sitk_mask_resized
-
-            # Check if the mask contains only one voxel. This needs to be done before and after resizing as the mask
-            if np.sum(sitk.GetArrayViewFromImage(sitk_mask)) <= 1:
-                if verbose:
-                    logging.info(
-                        f"Skipping mask (after potentially having applied resizing to {resize_size}) with only one segmented voxel:",
-                        mask_path,
-                    )
-                continue
-
-            # Finally, run the feature extraction
-            try:
-                output = feature_extractor.execute(sitk_image, sitk_mask)
-            except Exception as e:
-                logging.debug(f"sitk_mask: {(sitk.GetArrayViewFromImage(sitk_mask))}")
-                logging.debug(f"sitk_image: {(sitk.GetArrayViewFromImage(sitk_image))}")
-                logging.debug(
-                    f"shape sitk_mask: {(sitk.GetArrayViewFromImage(sitk_mask)).shape} and shape sitk_image: {(sitk.GetArrayViewFromImage(sitk_image)).shape}"
-                )
-                logging.error(
-                    f"Error occurred while extracting features for image {i} from image {image_path} and mask {mask_path}: {e}"
-                )
-                raise e
-            radiomics_features = {}
-            for feature_name in output.keys():
-                if "diagnostics" not in feature_name:
-                    radiomics_features[feature_name.replace("original_", "")] = float(
-                        output[feature_name]
-                    )
-            radiomics_results.append(radiomics_features)
-            if verbose:
-                logging.debug(
-                    f"img_shape:{sitk.GetArrayViewFromImage(sitk_image).shape}, features: {len(list(radiomics_features.values()))}"
-                )
-
-            try:
-                # We check if pred_arr is defined already.
-                pred_arr
-            except NameError:
-                # As pred_arr was not yet defined we initialize it here based on the length/dimensionality of radiomics features
-                pred_arr = np.empty(
-                    (len(image_paths), len(list(radiomics_features.values())))
-                )
-
-            pred_arr[i] = list(radiomics_features.values())
-            if verbose:
-                logging.debug(
-                    f"Total number of features extracted for image {i}: {len(pred_arr[i])}"
-                )
-            pbar.update(1)
-
-    if radiomics_results and verbose:
-        logging.info(f"Number of radiomics features: {len(radiomics_results[0])}")
-    try:
-        prediction_array = pred_arr
-    except NameError:
-        logging.warning(
-            f"Error: No features extracted from the image files in the dataset {idx}. "
-            f"Last extracted radiomics features were: {radiomics_results[-1]} "
-        )
-
-    return prediction_array, radiomics_results, image_paths, mask_paths
-
 
 def resize_image_array(sitk_image_array, resize_size, interpolation=cv2.INTER_LINEAR):
     if len(sitk_image_array.shape) == 2:
@@ -354,6 +195,169 @@ def resize_image_array(sitk_image_array, resize_size, interpolation=cv2.INTER_LI
             f"SITK Image array has an unexpected shape: {sitk_image_array.shape}. Expected 2D or 3D array (no channel dim). Got {len(sitk_image_array.shape)}"
         )
     return sitk_image_array_resized
+
+def process_image_mask_pair(image_mask_pair, resize_size=None, feature_extractor=None, verbose=False):
+    image_path, mask_path = image_mask_pair
+    #for i, (image_path, mask_path) in enumerate(zip(image_paths, mask_paths)):
+    sitk_image = sitk.ReadImage(
+        str(image_path), outputPixelType=sitk.sitkFloat32
+    )
+    if mask_path is None:
+        # https://discourse.slicer.org/t/features-extraction/11047/3
+        ma_arr = np.ones(sitk_image.GetSize()[::-1]).astype(
+            np.uint8
+        )  # reverse the order as image is xyz, array is zyx
+        sitk_mask = sitk.GetImageFromArray(ma_arr)
+        try:
+            sitk_mask.CopyInformation(sitk_image)  # Copy geometric info
+        except Exception as e:
+            logging.debug(
+                f"Error while trying to copy information from image to mask: {e}"
+            )
+            pass
+        if verbose:
+            logging.debug(
+                "Empty mask (true everywhere) is used for feature extraction."
+            )
+    else:
+        sitk_mask = sitk.ReadImage(str(mask_path))
+
+    # Check if the mask is in range [0, 255] and rescale it to [0, 1]
+    if np.max(sitk.GetArrayViewFromImage(sitk_mask)) == 255:
+        sitk_mask = sitk.Cast(sitk_mask, sitk.sitkFloat32) / 255.0
+
+    if resize_size is not None:
+        sitk_image_array = sitk.GetArrayViewFromImage(sitk_image)
+        sitk_image_array_resized = resize_image_array(
+            sitk_image_array, resize_size, interpolation=cv2.INTER_LINEAR
+        )
+        sitk_image_resized = sitk.GetImageFromArray(sitk_image_array_resized)
+        try:
+            sitk_image_resized.CopyInformation(sitk_image)
+        except:
+            pass
+        sitk_image = (
+            sitk_image_resized  # Update the image to the resized version
+        )
+
+        sitk_mask_array = sitk.GetArrayViewFromImage(sitk_mask)
+        sitk_mask_array_resized = resize_image_array(
+            sitk_mask_array, resize_size, interpolation=cv2.INTER_LINEAR
+        )
+        # After resizing, set all values above 0.5 to 1 and all values below to 0
+        sitk_mask_array_resized[sitk_mask_array_resized > 0.5] = 1
+        sitk_mask_array_resized[sitk_mask_array_resized <= 0.5] = 0
+        sitk_mask_resized = sitk.GetImageFromArray(sitk_mask_array_resized)
+        try:
+            sitk_mask_resized.CopyInformation(sitk_mask)
+        except:
+            pass
+        sitk_mask = sitk_mask_resized
+
+    # Check if the mask contains only one voxel. This needs to be done before and after resizing as the mask
+    if np.sum(sitk.GetArrayViewFromImage(sitk_mask)) <= 1:
+        if verbose:
+            logging.info(
+                f"Skipping mask (after potentially having applied resizing to {resize_size}) with only one segmented voxel:",
+                mask_path,
+            )
+        return
+
+    # Finally, run the feature extraction
+    try:
+        output = feature_extractor.execute(sitk_image, sitk_mask)
+    except Exception as e:
+        logging.debug(f"sitk_mask: {(sitk.GetArrayViewFromImage(sitk_mask))}")
+        logging.debug(f"sitk_image: {(sitk.GetArrayViewFromImage(sitk_image))}")
+        logging.debug(
+            f"shape sitk_mask: {(sitk.GetArrayViewFromImage(sitk_mask)).shape} and shape sitk_image: {(sitk.GetArrayViewFromImage(sitk_image)).shape}"
+        )
+        logging.error(
+            f"Error occurred while extracting features for image {image_path} and mask {mask_path}: {e}"
+        )
+        raise e
+    radiomics_features = {}
+    for feature_name in output.keys():
+        if "diagnostics" not in feature_name:
+            radiomics_features[feature_name.replace("original_", "")] = float(
+                output[feature_name]
+            )
+    radiomics_feature_values_list = list(radiomics_features.values())
+    #pbar.update(1)
+    return radiomics_feature_values_list, radiomics_features, len(radiomics_feature_values_list)
+
+def compute_features(
+    files,
+    feature_extractor,
+    masks=None,
+    resize_size=None,
+    verbose=False,
+    num_workers = None,
+):
+    """Calculates the features of the given query image (optionally, alongside a respective segmentation mask).
+
+    Params:
+    -- file_lists       : List of image file_lists paths
+    -- feature_extractor       : Instance of radiomics feature_extractor
+    -- mask_lists : The list of paths of the mask file_lists
+    -- resize_size: In case the images should be resized before the radiomics features are calculated
+    -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
+
+    Returns:
+    -- A numpy array of dimension (num images, num_features) that contains the
+       extracted features of the given query image (optionally, alongside a respective segmentation mask).
+    """
+    mask_paths = []
+
+    for idx, file_path in enumerate(files):
+        if masks is not None:
+            # Note: Sorting assumption here: Masks and images are in separate folders. Each image has a mask and
+            # mask and image file are named similarly enough that sorting assures correspondence between image and mask index positions.
+            try:
+                mask_paths.append(masks[idx])
+            except IndexError as e:
+                raise RuntimeError(
+                    f"Mask '{idx}' not found for image file '{file_path}'. "
+                    f"Please revise that for each image there is a mask present. "
+                    f"Ensure file names of image and mask correspond, as index position "
+                    f"correspondence is assumed after sorting both image and mask lists. "
+                    f"Exception: {e}"
+                )
+        else:
+            mask_paths.append(None)
+
+    if verbose:
+        # get some logging.infos to check the progress and if everything is working
+        logging.info(
+            f"Now processing corresponding image-mask pairs (e.g., IMG[0]:{files[0]}, MASK[0]: {mask_paths[0]}. Do these correspond?"
+        )
+
+    # multiprocessing feature extraction
+    if num_workers is None: num_workers = mp.cpu_count() - 2 # dont use all cpus.
+    if num_workers < 1: num_workers = 1
+    process_pairs=partial(process_image_mask_pair, resize_size=resize_size, feature_extractor=feature_extractor, verbose=verbose)
+    with mp.Pool(processes=num_workers) as p:
+        # features_list, list_radiomics_feature_dict_list, num_features_list = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
+        results = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
+        #results = p.map(process_pairs, zip(files, mask_paths))
+
+    # get the first element of results
+    features_list = []
+    list_radiomics_feature_dict_list = []
+    for result in results:
+        features_list.append(result[0])
+        list_radiomics_feature_dict_list.append(result[1])
+
+    if verbose: logging.info(f"Number of radiomics features: {len(features_list[0])}")
+
+    # processing result in numpy array
+    pred_arr = np.asarray(features_list) #np.empty(len(image_paths), num_features_list)
+
+    return pred_arr, list_radiomics_feature_dict_list, mask_paths
+
+
+
+
 
 
 def save_features_to_csv(csv_file_path, image_paths, mask_paths, feature_data):
@@ -604,6 +608,7 @@ def calculate_feature_statistics(
     verbose: bool = False,
     save_features: bool = False,
     norm_sets_separately: bool = True,
+    num_workers=None,
 ) -> (list, list):
     """Calculation of the statistics used by the FRD.
     Params:
@@ -623,12 +628,13 @@ def calculate_feature_statistics(
     feature_list = []
 
     for idx, file_list in enumerate(file_lists):
-        features, radiomics_results, image_paths, mask_paths = compute_features(
+        features, radiomics_results, mask_paths = compute_features(
             files=file_list,
             feature_extractor=feature_extractor,
             masks=mask_lists[idx] if mask_lists is not None else None,
             resize_size=resize_size,
             verbose=verbose,
+            num_workers=num_workers,
         )
         if verbose:
             logging.debug(f"features of radiomics: {features}")
@@ -713,10 +719,10 @@ def calculate_feature_statistics(
                 f"radiomics_set{idx}_results_normalized_{folder_name}_{unique_identifier}.csv",
             )
             save_features_to_csv(
-                csv_file_path, image_paths, mask_paths, radiomics_results
+                csv_file_path, file_list, mask_paths, radiomics_results
             )
             save_features_to_csv(
-                norm_csv_file_path, image_paths, mask_paths, radiomics_results
+                norm_csv_file_path, file_list, mask_paths, radiomics_results
             )
 
     return mu_list, sigma_list
@@ -732,6 +738,7 @@ def compute_statistics_of_paths(
     verbose=False,
     save_features=False,
     norm_sets_separately=True,
+    num_workers=None,
 ):
     """Calculates the statistics later used to compute the Frechet Distance for a given paths (i.e. one of the two distributions)."""
 
@@ -784,6 +791,7 @@ def compute_statistics_of_paths(
             verbose=verbose,
             save_features=save_features,
             norm_sets_separately=norm_sets_separately,
+            num_workers=num_workers,
         )
 
 
@@ -831,6 +839,7 @@ def compute_frd(
     verbose=False,
     save_features=True,
     norm_sets_separately=True,
+    num_workers=None,
 ):
     """Calculates the FRD based on the statistics from the two paths (i.e. the two distributions)
         Params:
@@ -870,6 +879,7 @@ def compute_frd(
         verbose=verbose,
         save_features=save_features,
         norm_sets_separately=norm_sets_separately,
+        num_workers=num_workers,
     )
 
     if verbose:
@@ -895,6 +905,8 @@ def save_frd_stats(
     resize_size=None,
     verbose=False,
     save_features=True,
+    num_workers=None,
+
 ):
     """Inits feature extractor creation and subsequent statistics computation and saving for the two distributions."""
 
@@ -927,6 +939,7 @@ def save_frd_stats(
         resize_size=resize_size,
         verbose=verbose,
         save_features=save_features,
+        num_workers=num_workers,
     )
 
     np.savez_compressed(paths[1], mu=mu_list[0], sigma=sigma_list[0])
@@ -955,6 +968,7 @@ def main():
             resize_size=args.resize_size,
             verbose=args.verbose,
             save_features=args.save_features,
+            num_workers=args.num_workers,
         )
         return
 
@@ -968,6 +982,7 @@ def main():
         verbose=args.verbose,
         save_features=args.save_features,
         norm_sets_separately=not args.norm_across,
+        num_workers=args.num_workers,
     )
     # logging the result
     logging.info(
