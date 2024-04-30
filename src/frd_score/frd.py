@@ -338,8 +338,8 @@ def compute_features(
     process_pairs=partial(process_image_mask_pair, resize_size=resize_size, feature_extractor=feature_extractor, verbose=verbose)
     with mp.Pool(processes=num_workers) as p:
         # features_list, list_radiomics_feature_dict_list, num_features_list = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
-        results = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
-        #results = p.map(process_pairs, zip(files, mask_paths))
+        #results = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
+        results = p.map(process_pairs, zip(files, mask_paths))
 
     # get the first element of results
     features_list = []
