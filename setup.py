@@ -32,10 +32,10 @@ if __name__ == "__main__":
         long_description=read("README.md"),
         license="Apache-2.0",
         long_description_content_type="text/markdown",
-        url="https://github.com/RichardObi/frd_score",
-        download_url="https://github.com/RichardObi/frd_score/archive/refs/tags/v0.0.1.tar.gz",
+        url="https://github.com/RichardObi/frd-score",
+        download_url="https://github.com/RichardObi/frd-score/archive/refs/tags/v.0.0.1.tar.gz",
         project_urls={
-            "Bug Tracker": "https://github.com/RichardObi/frd_score/issues",
+            "Bug Tracker": "https://github.com/RichardObi/frd-score/issues",
         },
         package_dir={"": "src"},
         packages=setuptools.find_packages(where="src"),
@@ -47,7 +47,7 @@ if __name__ == "__main__":
         python_requires=">=3.8",
         entry_points={
             "console_scripts": [
-                "frd = frd_score.frd:main",
+                "frd-score = frd_score.frd:main",
             ],
         },
         install_requires=[
