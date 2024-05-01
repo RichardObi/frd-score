@@ -5,7 +5,7 @@ Pillow~=10.3.0
 scipy~=1.10.0
 SimpleITK~=2.3.1
 pyradiomics==3.0.1a3
-tqdm~=4.64.1
+#tqdm~=4.64.1
 
 # Required for testing
 setuptools~=65.6.3

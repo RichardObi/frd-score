@@ -120,3 +120,6 @@ dmypy.json
 
 # pytest cache dirs
 .pytest_cache/
+
+# csv files with features
+*.csv

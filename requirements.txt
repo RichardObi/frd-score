@@ -71,7 +71,7 @@ tomli==2.0.1
     # via
     #   nox
     #   pytest
-tqdm==4.64.1
+#tqdm==4.64.1
     # via -r requirements.in
 virtualenv==20.26.0
     # via nox

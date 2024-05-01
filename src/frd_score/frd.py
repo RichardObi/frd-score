@@ -22,12 +22,9 @@ from pathlib import Path
 import multiprocessing as mp
 from functools import partial
 
-
-
 import cv2
 import numpy as np
 from scipy import linalg
-from tqdm import tqdm
 from radiomics import featureextractor
 import SimpleITK as sitk
 
@@ -140,14 +137,6 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument(
-        "--features",
-        type=str,
-        default=None,
-        help="you may use this option to provide a csv file (e.g., paths/to/feature_names.csv) with the feature names to be used for the "
-        "frd calculation. The csv file should have a single column with the feature names.",
-    )
-
-    parser.add_argument(
         "-v",
         "--verbose",
         action="store_true",
@@ -168,11 +157,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=None,
         help="The number of cpu workers used for multiprocessing during feature extraction. "
-             "If set to None, then the system's number of available cpu cores minus 2 will be taken as default. ",
+        "If set to None, then the system's number of available cpu cores minus 2 will be taken as default. ",
     )
 
     args = parser.parse_args()
     return args
+
 
 def resize_image_array(sitk_image_array, resize_size, interpolation=cv2.INTER_LINEAR):
     if len(sitk_image_array.shape) == 2:
@@ -196,12 +186,13 @@ def resize_image_array(sitk_image_array, resize_size, interpolation=cv2.INTER_LI
         )
     return sitk_image_array_resized
 
-def process_image_mask_pair(image_mask_pair, resize_size=None, feature_extractor=None, verbose=False):
+
+def process_image_mask_pair(
+    image_mask_pair, resize_size=None, feature_extractor=None, verbose=False
+):
     image_path, mask_path = image_mask_pair
-    #for i, (image_path, mask_path) in enumerate(zip(image_paths, mask_paths)):
-    sitk_image = sitk.ReadImage(
-        str(image_path), outputPixelType=sitk.sitkFloat32
-    )
+    # for i, (image_path, mask_path) in enumerate(zip(image_paths, mask_paths)):
+    sitk_image = sitk.ReadImage(str(image_path), outputPixelType=sitk.sitkFloat32)
     if mask_path is None:
         # https://discourse.slicer.org/t/features-extraction/11047/3
         ma_arr = np.ones(sitk_image.GetSize()[::-1]).astype(
@@ -236,9 +227,7 @@ def process_image_mask_pair(image_mask_pair, resize_size=None, feature_extractor
             sitk_image_resized.CopyInformation(sitk_image)
         except:
             pass
-        sitk_image = (
-            sitk_image_resized  # Update the image to the resized version
-        )
+        sitk_image = sitk_image_resized  # Update the image to the resized version
 
         sitk_mask_array = sitk.GetArrayViewFromImage(sitk_mask)
         sitk_mask_array_resized = resize_image_array(
@@ -283,8 +272,13 @@ def process_image_mask_pair(image_mask_pair, resize_size=None, feature_extractor
                 output[feature_name]
             )
     radiomics_feature_values_list = list(radiomics_features.values())
-    #pbar.update(1)
-    return radiomics_feature_values_list, radiomics_features, len(radiomics_feature_values_list)
+
+    return (
+        radiomics_feature_values_list,
+        radiomics_features,
+        len(radiomics_feature_values_list),
+    )
+
 
 def compute_features(
     files,
@@ -292,23 +286,23 @@ def compute_features(
     masks=None,
     resize_size=None,
     verbose=False,
-    num_workers = None,
+    num_workers=None,
 ):
     """Calculates the features of the given query image (optionally, alongside a respective segmentation mask).
 
     Params:
-    -- file_lists       : List of image file_lists paths
-    -- feature_extractor       : Instance of radiomics feature_extractor
-    -- mask_lists : The list of paths of the mask file_lists
-    -- resize_size: In case the images should be resized before the radiomics features are calculated
-    -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
+    -- file_lists           : List of image file_lists paths
+    -- feature_extractor    : Instance of radiomics feature_extractor
+    -- mask_lists           : The list of paths of the mask file_lists
+    -- resize_size          : In case the images should be resized before the radiomics features are calculated
+    -- verbose              : Indicates the verbosity level of the logging. If true, more info is logged to console.
+    -- num_workers          : Setting the number of cpu workers for feature extraction. If None, max-2 are used
 
     Returns:
     -- A numpy array of dimension (num images, num_features) that contains the
        extracted features of the given query image (optionally, alongside a respective segmentation mask).
     """
     mask_paths = []
-
     for idx, file_path in enumerate(files):
         if masks is not None:
             # Note: Sorting assumption here: Masks and images are in separate folders. Each image has a mask and
@@ -331,14 +325,20 @@ def compute_features(
         logging.info(
             f"Now processing corresponding image-mask pairs (e.g., IMG[0]:{files[0]}, MASK[0]: {mask_paths[0]}. Do these correspond?"
         )
-
     # multiprocessing feature extraction
-    if num_workers is None: num_workers = mp.cpu_count() - 2 # dont use all cpus.
-    if num_workers < 1: num_workers = 1
-    process_pairs=partial(process_image_mask_pair, resize_size=resize_size, feature_extractor=feature_extractor, verbose=verbose)
+    if num_workers is None:
+        num_workers = mp.cpu_count() - 2  # dont use all cpus.
+    if num_workers < 1:
+        num_workers = 1
+    process_pairs = partial(
+        process_image_mask_pair,
+        resize_size=resize_size,
+        feature_extractor=feature_extractor,
+        verbose=verbose,
+    )
     with mp.Pool(processes=num_workers) as p:
         # features_list, list_radiomics_feature_dict_list, num_features_list = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
-        #results = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
+        # results = tqdm(p.imap(process_pairs, zip(files, mask_paths)), total=len(files))
         results = p.map(process_pairs, zip(files, mask_paths))
 
     # get the first element of results
@@ -348,16 +348,15 @@ def compute_features(
         features_list.append(result[0])
         list_radiomics_feature_dict_list.append(result[1])
 
-    if verbose: logging.info(f"Number of radiomics features: {len(features_list[0])}")
+    if verbose:
+        logging.info(f"Number of radiomics features: {len(features_list[0])}")
 
     # processing result in numpy array
-    pred_arr = np.asarray(features_list) #np.empty(len(image_paths), num_features_list)
+    pred_arr = np.asarray(
+        features_list
+    )  # np.empty(len(image_paths), num_features_list)
 
     return pred_arr, list_radiomics_feature_dict_list, mask_paths
-
-
-
-
 
 
 def save_features_to_csv(csv_file_path, image_paths, mask_paths, feature_data):
@@ -439,10 +438,10 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
     assert (
         mu1.shape == mu2.shape
-    ), "Training and test mean vectors have different lengths"
+    ), "Dataset1 and dataset2 mean vectors have different lengths"
     assert (
         sigma1.shape == sigma2.shape
-    ), "Training and test covariances have different dimensions"
+    ), "Dataset1 and dataset2 covariances have different dimensions"
 
     diff = mu1 - mu2
 
@@ -611,14 +610,18 @@ def calculate_feature_statistics(
     num_workers=None,
 ) -> (list, list):
     """Calculation of the statistics used by the FRD.
+
     Params:
-    -- file_lists                : List of image file_lists paths
-    -- norm_type : The method with which the extracted features should be normalized
-    -- norm_range : The range of normalization to scale the extracted features to after normalization
+    -- file_lists           : List of image file_lists paths
+    -- norm_type            : The method with which the extracted features should be normalized
+    -- norm_range           : The range of normalization to scale the extracted features to after normalization
     -- feature_extractor    : Instance of pyradiomics feature_extractor
-    -- mask_lists : The list of paths of the mask file_lists
-    -- resize_size: In case the images should be resized before the radiomics features are calculated
-    -- verbose: Indicates the verbosity level of the logging. If true, more info is logged to console.
+    -- mask_lists           : The list of paths of the mask file_lists
+    -- resize_size          : In case the images should be resized before the radiomics features are calculated
+    -- verbose              : Indicates the verbosity level of the logging. If true, more info is logged to console.
+    -- save_features        : Indicates whether the extracted features (original and normalized) should be saved in a csv file.
+    -- norm_sets_separately : If true, indicates that the normalization should be done separately for the two sets of images.
+    -- num_workers          : Setting the number of cpu workers for feature extraction. If None, max-2 are used
 
     Returns:
     -- mu    : The mean over features extracted by the pyradiomics feature_extractor.
@@ -729,11 +732,11 @@ def calculate_feature_statistics(
 
 
 def compute_statistics_of_paths(
-    paths: list,  # TODO
+    paths: list,
     norm_type: str,
     norm_range: list,
     feature_extractor,
-    paths_mask: list = None,  # TODO
+    paths_mask: list = None,
     resize_size=None,
     verbose=False,
     save_features=False,
@@ -742,27 +745,34 @@ def compute_statistics_of_paths(
 ):
     """Calculates the statistics later used to compute the Frechet Distance for a given paths (i.e. one of the two distributions)."""
 
-    if paths[0].endswith(".npz"):
+    if not isinstance(paths[0], list) and paths[0].endswith(".npz"):
         with np.load(paths[0]) as f:
             m, s = f["mu"][:], f["sigma"][:]
     else:
         file_lists = []
         mask_lists = []
-        for path in paths:
-            path = pathlib.Path(path)
-            file_lists.append(
-                sorted(
-                    [
-                        file
-                        for ext in IMAGE_EXTENSIONS
-                        for file in path.glob("*.{}".format(ext))
-                    ]
+        for idx, path in enumerate(paths):
+            if isinstance(path, list):
+                # assumption: user provides already sorted list corresponding to sorted list of masks.
+                file_lists.append(path)
+            else:
+                path = pathlib.Path(path)
+                file_lists.append(
+                    sorted(
+                        [
+                            file
+                            for ext in IMAGE_EXTENSIONS
+                            for file in path.glob("*.{}".format(ext))
+                        ]
+                    )
                 )
-            )
         if paths_mask is not None:
-            for path_mask in paths_mask:
+            for idx2, path_mask in enumerate(paths_mask):
                 if path_mask is None:
                     mask_lists.append(None)
+                elif isinstance(path_mask, list):
+                    # assumption: user provides already sorted list of masks.
+                    mask_lists.append(path_mask)
                 else:
                     path_mask = pathlib.Path(path_mask)
                     # Assumption: Each file in image dir has a corresponding file in mask dir with name
@@ -776,6 +786,11 @@ def compute_statistics_of_paths(
                             ]
                         )
                     )
+            # Warning if the length of masks is different from length of images
+            if len(mask_lists[idx2]) != len(file_lists[idx2]):
+                logging.warning(
+                    f"The number of provided mask files (={len(mask_lists[idx])}) is different from the number of provided images (={len(file_lists[idx])}). Please revise and adjust, if necessary."
+                )
         else:
             mask_lists = [None, None]
             if verbose:
@@ -852,13 +867,16 @@ def compute_frd(
     -- verbose              : Indicates the verbosity level of the logging. If true, more info is logged to console.
     -- save_features        : Indicates whether the extracted features (original and normalized) should be saved to a csv file.
     -- norm_sets_separately : If true, indicates that the normalization should be done separately for the two sets of images.
+    -- num_workers          : Setting the number of cpu workers for feature extraction. If None, max-2 are used
 
     This function may be imported and called from other scripts to compute the FRD.
     """
 
     for p in paths:
-        if not os.path.exists(p):
-            raise RuntimeError(f"Invalid paths: {p}")
+        if not isinstance(p, list) and not os.path.exists(p):
+            raise RuntimeError(
+                f"Invalid paths: {p}. You need to provide either a valid path or a list of files here."
+            )
 
     if not norm_sets_separately and ".npz" in paths[0]:
         raise ValueError(
@@ -906,15 +924,13 @@ def save_frd_stats(
     verbose=False,
     save_features=True,
     num_workers=None,
-
 ):
     """Inits feature extractor creation and subsequent statistics computation and saving for the two distributions."""
 
-    if not os.path.exists(paths[0]):
+    if not isinstance(paths[0], list) and not os.path.exists(paths[0]):
         raise RuntimeError(
-            f"Please use a valid paths to imaging data. Currently got invalid paths: {paths[0]}"
+            f"Please use a valid paths to imaging data or list of paths to images. Currently got invalid path: {paths[0]}"
         )
-
     if os.path.exists(paths[1]):
         raise RuntimeError(
             f"Please use an output file paths to an .npz file that does not yet exists. Currently got output file: {paths[1]}"
@@ -951,17 +967,10 @@ def main():
     if verbose:
         logging.info(args)
 
-    if args.features is None:
-        # we pass only one feature variable into the subsequent functions either containing a link (type str)
-        # to a csv file or a list of feature names (type list)
-        features = args.feature_groups
-    else:
-        features = args.features
-
     if args.save_stats:
         save_frd_stats(
             args.paths,
-            features=features,
+            features=args.feature_groups,
             norm_type=args.norm_type,
             norm_range=args.norm_range,
             paths_masks=args.paths_masks,
@@ -974,7 +983,7 @@ def main():
 
     frd_value = compute_frd(
         args.paths,
-        features=features,
+        features=args.feature_groups,
         norm_type=args.norm_type,
         norm_range=args.norm_range,
         paths_masks=args.paths_masks,
@@ -987,7 +996,7 @@ def main():
     # logging the result
     logging.info(
         f"Fréchet Radiomics Distance: {frd_value}. "
-        f"Based on features: {features} with normalization type: {args.norm_type} and normalization range: {args.norm_range} (was normalization done separately for each dataset? -> {not args.norm_across}), with mask_lists: {args.paths_masks}, resized to f'{args.resize_size if args.resize_size is not None else ''}."
+        f"Based on features: {args.feature_groups} with normalization type: {args.norm_type} and normalization range: {args.norm_range} (was normalization done separately for each dataset? -> {not args.norm_across}), with mask_lists: {args.paths_masks}, resized to f'{args.resize_size if args.resize_size is not None else ''}."
     )
 
 

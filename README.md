@@ -33,7 +33,6 @@ Requirements:
 - numpy
 - opencv_contrib_python_headless
 - scipy
-- tqdm
 
 ## Usage
 
@@ -55,9 +54,21 @@ If you would like to import frd as a module, you can use the following code snip
 from frd_score import frd
 
 paths=['path/to/dataset_A', 'path/to/dataset_B']
-paths_masks=[path_mask_A, path_mask_B] # optionally, we can add masks.
+
+# optionally, use masks.
+paths_masks=[path_mask_A, path_mask_B] 
 
 frd_value = frd.compute_frd(paths, paths_masks=paths_masks) 
+```
+
+Instead of providing the path to a folder, you may also directly provide a list to image paths (and/or masks).
+```
+img_paths_A = ['path/to/image1', 'path/to/image2']
+img_paths_B = ['path/to/image3', 'path/to/image4']
+
+paths=[img_paths_A, img_paths_B]
+
+frd_value = frd.compute_frd(paths) 
 ```
 
 ## Additional arguments

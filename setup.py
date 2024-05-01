@@ -57,7 +57,7 @@ if __name__ == "__main__":
             "scipy>=1.10.0",
             "opencv_contrib_python_headless>=4.8.1.78",
             "SimpleITK>=2.3.1",
-            "tqdm>=4.64.1",
+            #"tqdm>=4.64.1",
         ],
         extras_require={
             "dev": ["flake8", "flake8-bugbear", "flake8-isort", "black==24.3.0", "isort", "nox", "pytest>=8.1.1", "nibabel>=3.2.1", ]

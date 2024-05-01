@@ -232,8 +232,8 @@ class TestFRD:
         paths_mask = [f"{path_a}_mask", f"{path_b}_mask"]
         norm_type = "minmax"
         norm_range = [0.0, 7.0]
+        paths = [path_a, path_a]
         try:
-            paths = [path_a, path_a]
             frd_value = frd.compute_frd(
                 paths,
                 features,
@@ -244,6 +244,7 @@ class TestFRD:
                 verbose=True,
                 save_features=False,
                 norm_sets_separately=True,
+                num_workers=1,
             )
             self.logger.warning(
                 f"FRD value 3D with masks (but same images), minmax normalized: {frd_value}"
@@ -255,8 +256,8 @@ class TestFRD:
             raise e
 
         ### Try different images with different masks
+        paths = [path_a, path_b]
         try:
-            paths = [path_a, path_b]
             frd_value = frd.compute_frd(
                 paths,
                 features,
@@ -274,6 +275,48 @@ class TestFRD:
             assert (
                 frd_value != 0.0
             ), f"FRD 3D with masks should not be 0, as we are comparing different images (and different masks). Got: {frd_value}"
+        except Exception as e:
+            raise e
+
+        ### Try with paths providing list of image_paths instead of parent folder
+        ## Also test if more masks are available than images.
+        # paths = [f"{path_a}", [f"{path_b}/img{i}.nii.gz" for i in range(0, 10)]]
+        paths = [
+            [f"{path_a}/img{i}.nii.gz" for i in range(0, 5)],
+            [f"{path_b}/img{i}.nii.gz" for i in range(0, 10)],
+        ]
+
+        # paths_mask = [f"{path_a}_mask", [f"{path_b}_mask/mask{i}.nii.gz" for i in range(0, 10)]]
+        paths_mask = [
+            [f"{path_b}_mask/mask{i}.nii.gz" for i in range(0, 8)],
+            [f"{path_b}_mask/mask{i}.nii.gz" for i in range(0, 10)],
+        ]
+
+        try:
+            # paths = [f"{path_a}", f"{path_b}"]
+            # [f"{path_b}/img{i}.nii.gz" for i in range(0, 1)]]
+            # [[f"{path_a}/img1.nii.gz", f"{path_a}/img2.nii.gz", f"{path_a}/img3.nii.gz"],
+            #     [f"{path_b}/img1.nii.gz", f"{path_b}/img2.nii.gz", f"{path_b}/img3.nii.gz"]]
+            # paths_mask = [[f"{path_a}_mask/mask{i}.nii.gz" for i in range(0, 10)],[f"{path_b}_mask/mask{i}.nii.gz" for i in range(0, 10)]]
+            # paths_mask = [[f"{path_a}_mask/mask1.nii.gz", f"{path_a}_mask/mask2.nii.gz", f"{path_a}_mask/mask3.nii.gz"],
+            #              [f"{path_b}_mask/mask1.nii.gz", f"{path_b}_mask/mask2.nii.gz", f"{path_b}_mask/mask3.nii.gz"]]
+            frd_value = frd.compute_frd(
+                paths,
+                features,
+                norm_type,
+                norm_range,
+                paths_masks=paths_mask,
+                resize_size=None,
+                verbose=True,
+                save_features=False,
+                norm_sets_separately=True,
+            )
+            self.logger.warning(
+                f"FRD value 3D with masks (but same images), minmax normalized (image and mask paths provided explicitly): {frd_value}"
+            )
+            assert (
+                frd_value != 0.0
+            ), f"FRD 3D with masks should not be 0, as we are comparing different images (and different masks, image and mask paths provided explicitly). Got: {frd_value}"
         except Exception as e:
             raise e
         finally:
