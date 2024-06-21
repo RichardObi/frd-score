@@ -880,6 +880,7 @@ def compute_frd(
         logger.setLevel(logging.ERROR)
         logger = logging.getLogger("radiomics.shape2D")
         logger.setLevel(logging.ERROR)
+        radiomics.setVerbosity(logging.ERROR)
 
     for p in paths:
         if not isinstance(p, list) and not os.path.exists(p):
@@ -984,6 +985,8 @@ def main():
         logger.setLevel(logging.ERROR)
         logger = logging.getLogger("radiomics.shape2D")
         logger.setLevel(logging.ERROR)
+        radiomics.setVerbosity(logging.ERROR)
+        print("test")
 
     if args.save_stats:
         save_frd_stats(
