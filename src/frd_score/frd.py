@@ -880,8 +880,11 @@ def compute_frd(
         logger.setLevel(logging.ERROR)
         logger = logging.getLogger("radiomics.shape2D")
         logger.setLevel(logging.ERROR)
-        radiomics.setVerbosity(logging.ERROR)
-
+        # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
+        radiomics.setVerbosity(60) #(logging.ERROR)
+        print("test2")
+    print("test3")
+    
     for p in paths:
         if not isinstance(p, list) and not os.path.exists(p):
             raise RuntimeError(
@@ -985,7 +988,8 @@ def main():
         logger.setLevel(logging.ERROR)
         logger = logging.getLogger("radiomics.shape2D")
         logger.setLevel(logging.ERROR)
-        radiomics.setVerbosity(logging.ERROR)
+        # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
+        radiomics.setVerbosity(60) #(logging.ERROR)
         print("test")
 
     if args.save_stats:
