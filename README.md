@@ -87,7 +87,7 @@ frd_value = frd.compute_frd(paths)
 
 `--save_features` or `-F`: Indicates whether radiomics feature values (normalized and non-normalized) should be stored in a csv file in the parent dir of `path/to/dataset_A`. This can be useful for reproducibility and interpretability.
 
-`--verbose` or `-v`: You may enable more detailed logging.info and logging.debug console logs by providing the `verbose` argument.
+`--verbose` or `-v`: You may enable more detailed logging.info and logging.debug console logs, as well as radiomics.logging.warning logs, by providing the `verbose` argument.
 
 `--num_workers` or `-w`: The number of cpu workers used for multiprocessing during feature extraction. If set to None, then the system's number of available cpu cores minus 2 will be taken as default (1 is the minimum value for num_workers).
 

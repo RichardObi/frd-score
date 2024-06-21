@@ -26,6 +26,7 @@ import cv2
 import numpy as np
 from scipy import linalg
 from radiomics import featureextractor
+from radiomics import setVerbosity
 import SimpleITK as sitk
 
 # Define allowed image extensions
@@ -571,7 +572,7 @@ def min_max_normalize(
                     if feature_names is not None
                     else f"feature_{idx}"
                 )
-                logging.warning(
+                logging.info(
                     f"Warning: While calculating minmax value (idx={idx}), a max_val - min_val ({max_val}-{min_val}) "
                     f"resulted in 0 for feature {feature_name} . Fallback: Now replacing feature value with 0.5 "
                     f"before scaling to new range ({float(new_min)}, {float(new_max)})."
@@ -871,6 +872,12 @@ def compute_frd(
 
     This function may be imported and called from other scripts to compute the FRD.
     """
+    if not verbose:
+        # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
+        logger = logging.getLogger("radiomics")
+        logger.setLevel(logging.ERROR)
+        # Info: https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
+        setVerbosity(60) #(logging.ERROR)
 
     for p in paths:
         if not isinstance(p, list) and not os.path.exists(p):
@@ -966,6 +973,12 @@ def main():
     verbose = args.verbose
     if verbose:
         logging.info(args)
+    else:
+        # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
+        logger = logging.getLogger("radiomics")
+        logger.setLevel(logging.ERROR)
+        # Info: https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
+        setVerbosity(60) #(logging.ERROR)
 
     if args.save_stats:
         save_frd_stats(
