@@ -26,6 +26,7 @@ import cv2
 import numpy as np
 from scipy import linalg
 from radiomics import featureextractor
+from radiomics import setVerbosity
 import SimpleITK as sitk
 
 # Define allowed image extensions
@@ -881,7 +882,7 @@ def compute_frd(
         logger = logging.getLogger("radiomics.shape2D")
         logger.setLevel(logging.ERROR)
         # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
-        radiomics.setVerbosity(60) #(logging.ERROR)
+        setVerbosity(60) #(logging.ERROR)
         print("test2")
         logging.error("test2")
     print("test3")
@@ -991,7 +992,7 @@ def main():
         logger = logging.getLogger("radiomics.shape2D")
         logger.setLevel(logging.ERROR)
         # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
-        radiomics.setVerbosity(60) #(logging.ERROR)
+        setVerbosity(60) #(logging.ERROR)
         print("test0")
         logging.error("test0")
     logging.error("tes1")
