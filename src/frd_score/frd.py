@@ -871,6 +871,10 @@ def compute_frd(
 
     This function may be imported and called from other scripts to compute the FRD.
     """
+    if not verbose:
+        # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
+        logger = radiomics.logging.getLogger("radiomics")
+        logger.setLevel(radiomics.logging.ERROR)
 
     for p in paths:
         if not isinstance(p, list) and not os.path.exists(p):
@@ -966,6 +970,10 @@ def main():
     verbose = args.verbose
     if verbose:
         logging.info(args)
+    else:
+        # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
+        logger = radiomics.logging.getLogger("radiomics")
+        logger.setLevel(radiomics.logging.ERROR)
 
     if args.save_stats:
         save_frd_stats(
