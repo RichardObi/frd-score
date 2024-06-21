@@ -873,8 +873,13 @@ def compute_frd(
     """
     if not verbose:
         # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
-        logger = radiomics.logging.getLogger("radiomics")
-        logger.setLevel(radiomics.logging.ERROR)
+        logger = logging.getLogger("radiomics")
+        logger.setLevel(logging.ERROR)
+        # https://github.com/AIM-Harvard/pyradiomics/blob/master/radiomics/base.py#L22-L23
+        logger = logging.getLogger("radiomics.glcm")
+        logger.setLevel(logging.ERROR)
+        logger = logging.getLogger("radiomics.shape2D")
+        logger.setLevel(logging.ERROR)
 
     for p in paths:
         if not isinstance(p, list) and not os.path.exists(p):
@@ -972,8 +977,13 @@ def main():
         logging.info(args)
     else:
         # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
-        logger = radiomics.logging.getLogger("radiomics")
-        logger.setLevel(radiomics.logging.ERROR)
+        logger = logging.getLogger("radiomics")
+        logger.setLevel(logging.ERROR)
+        # https://github.com/AIM-Harvard/pyradiomics/blob/master/radiomics/base.py#L22-L23
+        logger = logging.getLogger("radiomics.glcm")
+        logger.setLevel(logging.ERROR)
+        logger = logging.getLogger("radiomics.shape2D")
+        logger.setLevel(logging.ERROR)
 
     if args.save_stats:
         save_frd_stats(
