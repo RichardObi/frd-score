@@ -33,7 +33,7 @@ if __name__ == "__main__":
         license="Apache-2.0",
         long_description_content_type="text/markdown",
         url="https://github.com/RichardObi/frd-score",
-        download_url="https://github.com/RichardObi/frd-score/archive/refs/tags/v.0.0.1.tar.gz",
+        download_url="https://github.com/RichardObi/frd-score/archive/refs/tags/v.0.0.2.tar.gz",
         project_urls={
             "Bug Tracker": "https://github.com/RichardObi/frd-score/issues",
         },
