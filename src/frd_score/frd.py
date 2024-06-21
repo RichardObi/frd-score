@@ -877,16 +877,16 @@ def compute_frd(
         logger = logging.getLogger("radiomics")
         logger.setLevel(logging.ERROR)
         # https://github.com/AIM-Harvard/pyradiomics/blob/master/radiomics/base.py#L22-L23
-        logger = logging.getLogger("radiomics.glcm")
-        logger.setLevel(logging.ERROR)
-        logger = logging.getLogger("radiomics.shape2D")
-        logger.setLevel(logging.ERROR)
+        #logger = logging.getLogger("radiomics.glcm")
+        #logger.setLevel(logging.ERROR)
+        #logger = logging.getLogger("radiomics.shape2D")
+        #logger.setLevel(logging.ERROR)
         # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
         setVerbosity(60) #(logging.ERROR)
-        print("test2")
-        logging.error("test2")
-    print("test3")
-    logging.error("test3")
+        #print("test2")
+        #logging.error("test2")
+    #print("test3")
+    #logging.error("test3")
 
     for p in paths:
         if not isinstance(p, list) and not os.path.exists(p):
@@ -987,15 +987,15 @@ def main():
         logger = logging.getLogger("radiomics")
         logger.setLevel(logging.ERROR)
         # https://github.com/AIM-Harvard/pyradiomics/blob/master/radiomics/base.py#L22-L23
-        logger = logging.getLogger("radiomics.glcm")
-        logger.setLevel(logging.ERROR)
-        logger = logging.getLogger("radiomics.shape2D")
-        logger.setLevel(logging.ERROR)
+        #logger = logging.getLogger("radiomics.glcm")
+        #logger.setLevel(logging.ERROR)
+        #logger = logging.getLogger("radiomics.shape2D")
+        #logger.setLevel(logging.ERROR)
         # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
         setVerbosity(60) #(logging.ERROR)
-        print("test0")
-        logging.error("test0")
-    logging.error("tes1")
+        #print("test0")
+        #logging.error("test0")
+    #logging.error("tes1")
 
 
     if args.save_stats:
