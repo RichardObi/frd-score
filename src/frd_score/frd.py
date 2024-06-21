@@ -572,7 +572,7 @@ def min_max_normalize(
                     if feature_names is not None
                     else f"feature_{idx}"
                 )
-                logging.warning(
+                logging.info(
                     f"Warning: While calculating minmax value (idx={idx}), a max_val - min_val ({max_val}-{min_val}) "
                     f"resulted in 0 for feature {feature_name} . Fallback: Now replacing feature value with 0.5 "
                     f"before scaling to new range ({float(new_min)}, {float(new_max)})."
@@ -876,17 +876,8 @@ def compute_frd(
         # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
         logger = logging.getLogger("radiomics")
         logger.setLevel(logging.ERROR)
-        # https://github.com/AIM-Harvard/pyradiomics/blob/master/radiomics/base.py#L22-L23
-        #logger = logging.getLogger("radiomics.glcm")
-        #logger.setLevel(logging.ERROR)
-        #logger = logging.getLogger("radiomics.shape2D")
-        #logger.setLevel(logging.ERROR)
-        # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
+        # Info: https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
         setVerbosity(60) #(logging.ERROR)
-        #print("test2")
-        #logging.error("test2")
-    #print("test3")
-    #logging.error("test3")
 
     for p in paths:
         if not isinstance(p, list) and not os.path.exists(p):
@@ -986,17 +977,8 @@ def main():
         # If verbose is not requested by user, we remove logging of warnings in radiomics to avoid cluttering the console
         logger = logging.getLogger("radiomics")
         logger.setLevel(logging.ERROR)
-        # https://github.com/AIM-Harvard/pyradiomics/blob/master/radiomics/base.py#L22-L23
-        #logger = logging.getLogger("radiomics.glcm")
-        #logger.setLevel(logging.ERROR)
-        #logger = logging.getLogger("radiomics.shape2D")
-        #logger.setLevel(logging.ERROR)
-        # https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
+        # Info: https://pyradiomics.readthedocs.io/en/latest/radiomics.html#radiomics.setVerbosity
         setVerbosity(60) #(logging.ERROR)
-        #print("test0")
-        #logging.error("test0")
-    #logging.error("tes1")
-
 
     if args.save_stats:
         save_frd_stats(
