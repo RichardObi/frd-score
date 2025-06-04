@@ -10,7 +10,7 @@ arXiv paper link: [![arXiv Paper](https://img.shields.io/badge/arXiv-2412.01496-
 </p>
 
 Metrics like FID are commonly used in medical image analysis to compare distributions of real and/or generated images following accepted practices in mainstream computer vision, but they may not be the best choice for medical imaging! 
-Here we provide easy-to-use code for computing our proposed distance metric **FRD** (**F**réchet **R**adiomic **D**istance) version v1.0 between sets of medical images, which we introduced in our paper *Fr\'echet Radiomic Distance (FRD): A Versatile Metric for Comparing Medical Imaging Datasets* ([link](https://arxiv.org/abs/2412.01496)), specifically designed for the needs of medical image analysis.
+Here we provide easy-to-use code for computing our proposed distance metric **FRD** (**F**réchet **R**adiomic **D**istance) version v1.0 between sets of medical images, which we introduced in our paper *Fréchet Radiomic Distance (FRD): A Versatile Metric for Comparing Medical Imaging Datasets* ([link](https://arxiv.org/abs/2412.01496)), specifically designed for the needs of medical image analysis.
 
 ### Why use FRD over FID, KID, CMMD, etc.?
 
