@@ -123,3 +123,5 @@ dmypy.json
 
 # csv files with features
 *.csv
+
+*.DS_Store
