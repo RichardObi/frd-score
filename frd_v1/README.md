@@ -5,6 +5,8 @@
 
 arXiv paper link: [![arXiv Paper](https://img.shields.io/badge/arXiv-2412.01496-orange.svg?style=flat)](https://arxiv.org/abs/2412.01496)
 
+Implementation adopted from [RaD repository](https://github.com/mazurowski-lab/RaD) provided by [Nicholas Konz](https://nickk124.github.io/).
+
 <p align="center">
   <img src='figs/teaser.png' width='75%'>
 </p>
@@ -63,7 +65,7 @@ Please cite our paper if you use our code or reference our work:
 To compute the FRD between two sets of images, simply run the following command in the main directory:
 
 ```bash
-python3 compute_rad.py \
+python3 compute_frd.py \
   --image_folder1 {IMAGE_FOLDER1} \ 
   --image_folder2 {IMAGE_FOLDER2}
 ```
@@ -78,7 +80,7 @@ For example, if you want to use FRD to compare a set of generated images to a se
 
 Want to see the specific name of each computed radiomic feature used in FRD for the sake of interpretability? The extracted features for each provided image folder are saved as a `.csv` file in that folder, where each named column corresponds to a radiomic feature.
 
-Additionally, you can add the argument `return_feature_names=True` to the function `convert_radiomic_dfs_to_vectors()` in `src/radiomics_utils.py`, (e.g., as used in `compute_rad.py`) to return the names of each radiomic feature in addition to the actual feature vectors of each of the two datasets where are used to compute FRD.
+Additionally, you can add the argument `return_feature_names=True` to the function `convert_radiomic_dfs_to_vectors()` in `src/radiomics_utils.py`, (e.g., as used in `compute_frd.py`) to return the names of each radiomic feature in addition to the actual feature vectors of each of the two datasets where are used to compute FRD.
 
 ## Further Usage and Applications
 
@@ -126,10 +128,10 @@ You can also perform additional radiomic feature interpretability analysis to un
   <img src='figs/radiomic_interp.png' width='65%'>
 </p>
 
-Which can be created easily by adding the `--interpret` argument to `compute_rad.py`, as
+Which can be created easily by adding the `--interpret` argument to `compute_frd.py`, as
 
 ```bash
-python3 compute_rad.py \
+python3 compute_frd.py \
   --image_folder1 {IMAGE_FOLDER1} \ 
   --image_folder2 {IMAGE_FOLDER2} \
   --interpret
