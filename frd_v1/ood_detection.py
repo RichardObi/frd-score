@@ -143,12 +143,12 @@ def main(
         print("saved OOD detection results to {}.".format(os.path.join(out_dir, 'ood_predictions.csv')))
 
     elif detection_type == "dataset":
-        # second part: develop normalized RaD-based scoring which doesnt need OOD validation data
+        # second part: develop normalized FRD-based scoring which doesn't need OOD validation data
         # AUC deviation between ID val and test data
         all_scores = np.concatenate([ID_scores_val, scores])
         all_labels = np.concatenate([np.zeros(len(ID_scores_val)), np.ones(len(scores))])
         auc_dev = auc_deviation(all_labels, all_scores)
-        print("dataset-level OOD score (nRaD_group) = {}".format(auc_dev))
+        print("dataset-level OOD score (nFRD_group) = {}".format(auc_dev))
 
     else:
         raise ValueError("Detection type must be either 'image' or 'dataset'.")

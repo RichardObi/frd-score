@@ -97,7 +97,7 @@ def convert_radiomic_dfs_to_vectors(radiomics_df1,
                     radiomics_df2 = radiomics_df2.drop(columns=col)
 
         else:
-            raise NotImplementedError("Invalid exclude_features argument")
+            raise NotImplementedError(f"Invalid exclude_features argument: {exclude_features}. Select one out of 'firstorder', 'wavelet', 'textural'.")
         
     # remove NaN and string radiomics
     # Identify columns with string data type
@@ -279,7 +279,7 @@ def compute_and_save_imagefolder_radiomics_parallel(
 
     return radiomics_df
 
-def compute_normalized_RaD(feats1, feats2, val_frac=0.1):
+def compute_normalized_frd(feats1, feats2, val_frac=0.1):
 
     # randomly split feats1 into train (reference set) and val (Establish distance dist), via val_frac
     val_idx = np.random.choice(feats1.shape[0], int(val_frac*feats1.shape[0]), replace=False)

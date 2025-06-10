@@ -1,5 +1,5 @@
 """
-Compute and interpret radiomic distances between two datasets.
+Compute and interpret fréchet radiomics distances between two datasets.
 """
 import os
 from argparse import ArgumentParser
@@ -55,9 +55,9 @@ def main(
                                                          ) 
     # Frechet distance
     fd = frechet_distance(feats1, feats2)
-    rad = np.log(fd)
+    frd = np.log(fd)
 
-    print("RaD = {}".format(rad))
+    print("FRD = {}".format(frd))
 
     if interpret:
         run_tsne = True
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument('--image_folder1', type=str, required=True)
     parser.add_argument('--image_folder2', type=str, required=True)
     parser.add_argument('--force_compute_fresh', action='store_true', help='re-compute all radiomics fresh')
-    parser.add_argument('--interpret', action='store_true', help='interpret the features underlying radiomic distance')
+    parser.add_argument('--interpret', action='store_true', help='interpret the features underlying Fréchet Radiomics Distance')
 
     args = parser.parse_args()
 
