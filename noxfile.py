@@ -5,7 +5,7 @@ Adopted and adjusted from https://github.com/mseitzer/pytorch-fid
 
 import nox
 
-LOCATIONS = ("src/", "tests/", "noxfile.py", "setup.py")
+LOCATIONS = ("frd_v1/", "frd_v0/", "frd_v1/", "frd_v1/src/", "frd_v0/tests/", "frd_v0/src/", "frd_v0/tests/",  "src/", "tests/", "noxfile.py", "setup.py")
 
 
 @nox.session(python=["3.8", "3.9", "3.10", "3.11", "3.12"])
@@ -13,6 +13,8 @@ def tests(session):
     session.install("setuptools")
     session.install("numpy")
     session.install("-r", "requirements.in")
+    session.install("-r", "frd_v0/requirements.in")
+    session.install("-r", "frd_v1/requirements.txt")
     #session.install("numpy") #get numpy's again, but now overwriting requirements.in file to get numpy's latest version based on python version (e.g. python3.12)
     session.install(".")
     session.install("pytest")
