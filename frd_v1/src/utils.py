@@ -52,9 +52,7 @@ def frechet_distance(feats1, feats2, eps=1e-6, means_only=False):
 
 def plot_tsne(feats1, feats2, feature_name, viz_folder):
     print("Running t-SNE on features...")
-    emb = TSNE(
-        n_components=2, perplexity=10, n_iter=10000, verbose=True
-        ).fit_transform(
+    emb = TSNE(n_components=2, perplexity=10, n_iter=10000, verbose=True).fit_transform(
             np.concatenate([feats1, feats2])
                         )
 

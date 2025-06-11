@@ -7,10 +7,11 @@ from time import time
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 from src.radiomics_utils import convert_radiomic_dfs_to_vectors, compute_and_save_imagefolder_radiomics, compute_and_save_imagefolder_radiomics_parallel, interpret_radiomic_differences
 from src.utils import frechet_distance
+
 
 def main(
         image_folder1,
@@ -62,6 +63,8 @@ def main(
     if interpret:
         run_tsne = True
         interpret_radiomic_differences(radiomics_path1, radiomics_path2, run_tsne=run_tsne)
+
+    return frd
 
 if __name__ == "__main__":
     tstart = time()

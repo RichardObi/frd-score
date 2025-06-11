@@ -12,7 +12,7 @@ import nibabel as nib
 import numpy as np
 from PIL import Image
 
-from src.frd_score import frd
+from frd_v0.src.frd_score import frd
 
 
 class TestFRD:
