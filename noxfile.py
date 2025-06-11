@@ -12,7 +12,7 @@ LOCATIONS = ("frd_v1/", "frd_v0/", "frd_v1/", "frd_v1/src/", "frd_v0/tests/", "f
 def tests(session):
     session.install("setuptools")
     session.install("numpy")
-    session.install("-r", "requirements.in")
+    #session.install("-r", "requirements.in")
     session.install("-r", "frd_v0/requirements.in")
     session.install("-r", "frd_v1/requirements.txt")
     #session.install("numpy") #get numpy's again, but now overwriting requirements.in file to get numpy's latest version based on python version (e.g. python3.12)
