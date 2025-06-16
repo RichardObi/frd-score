@@ -16,9 +16,11 @@ def tests(session):
     #session.install("-r", "requirements.in")
     session.install("-r", "frd_v1/requirements.txt")
     session.install("-r", "frd_v0/requirements.in")
+    # Note: Pyradiomics might need to be installed from github in order for compatibility with python versions >3.9
+    # https://github.com/AIM-Harvard/pyradiomics/issues/903
     #session.install("numpy") #get numpy's again, but now overwriting requirements.in file to get numpy's latest version based on python version (e.g. python3.12)
     session.install("frd_v0/.")
-    session.install("frd_v1/.")
+    #session.install("frd_v1/.")
     session.install("pytest")
     session.install("pytest-mock")
     session.run("pytest", *session.posargs)
