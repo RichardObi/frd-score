@@ -26,11 +26,11 @@ def compute_slice_radiomics(img_slice, mask_slice, params_file='configs/2D_extra
 
     # check if params_file exists, else change path to parent of parent dir of this script
     if not os.path.exists(params_file):
+        params_file = os.path.join("frd_v1", params_file)
+    if not os.path.exists(params_file):
         params_file = os.path.join(os.path.dirname(__file__), params_file)
     if not os.path.exists(params_file):
         params_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), params_file)
-    if not os.path.exists(params_file):
-        params_file = os.path.join("frd_v1", params_file)
     if not os.path.exists(params_file):
         raise FileNotFoundError(f"Radiomics parameters file {params_file} does not exist. ")
 
