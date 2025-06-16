@@ -8,8 +8,8 @@ import nox
 LOCATIONS = ("frd_v1/", "frd_v0/", "frd_v1/", "frd_v1/src/", "frd_v0/tests/", "frd_v0/src/", "frd_v0/tests/",  "src/", "tests/", "noxfile.py", "setup.py")
 
 
-@nox.session(python=["3.9"])
-#@nox.session(python=["3.8", "3.9", "3.10", "3.11", "3.12"])
+#@nox.session(python=["3.9"])
+@nox.session(python=["3.8", "3.9", "3.10", "3.11", "3.12"])
 def tests(session):
     session.install("setuptools")
     session.install("numpy")
