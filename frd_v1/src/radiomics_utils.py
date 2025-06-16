@@ -22,7 +22,17 @@ logger.setLevel(logging.ERROR)
 
 
 def compute_slice_radiomics(img_slice, mask_slice, params_file='configs/2D_extraction.yaml'):
-    device = 'cpu' # GPU implementation is too slow, possibly bugged
+    device = 'cpu' # FIXME: GPU implementation is too slow, possibly bugged
+
+    # check if params_file exists, else change path to parent of parent dir of this script
+    if not os.path.exists(params_file):
+        params_file = os.path.join(os.path.dirname(__file__), params_file)
+    if not os.path.exists(params_file):
+        params_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), params_file)
+    if not os.path.exists(params_file):
+        params_file = os.path.join("frd_v1", params_file)
+    if not os.path.exists(params_file):
+        raise FileNotFoundError(f"Radiomics parameters file {params_file} does not exist. ")
 
     # assume pixel size is in 1x1 mm. I am gonna assume 3rd dimension which is the depth is also 1 mm so that it is isotropic
     data_spacing = [1,1,1]
