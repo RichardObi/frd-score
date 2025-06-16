@@ -43,12 +43,13 @@ class TestFRDv1:
         path_b = "tmp_path2"
 
         # generate a few random images and test if frd calculation works for all allowed image file extensions
-        in_arr_1 = np.random.rand(128, 128, 3) * 255
+        # in_arr_1 = np.random.rand(128, 128, 3) * 255 # in case we want to try RGB images as well.
+        in_arr_1 = np.random.rand(128, 128) * 255
         in_arr_2 = np.random.rand(128, 128) * 255
 
         in_image_1 = Image.fromarray(
-            in_arr_1.astype(np.uint8), mode="RGB"
-        )  # Testing RGB image
+            in_arr_1.astype(np.uint8), mode="L" # mode="RGB" # in case we want to try RGB images as well.
+        )  # Testing grayscale image
         in_image_2 = Image.fromarray(
             in_arr_2.astype(np.uint8), mode="L"
         )  # Testing grayscale image
@@ -60,8 +61,14 @@ class TestFRDv1:
         for ext in IMAGE_EXTENSIONS:
             if ext != "nii.gz":
                 # create image with different extensions
-                in_image_1.save(f"{path_a}/img.{ext}")
-                in_image_2.save(f"{path_b}/img.{ext}")
+                in_image_1.save(f"{path_a}/img1.{ext}")
+                in_image_1.save(f"{path_a}/img2.{ext}")
+                in_image_2.save(f"{path_b}/img1.{ext}")
+                in_image_2.save(f"{path_b}/img2.{ext}")
+
+        # Ensure no empty datasets
+        assert len(list(Path(path_a).glob("*"))) > 0
+        assert len(list(Path(path_b).glob("*"))) > 0
 
         # Test if this function raises error
         try:
