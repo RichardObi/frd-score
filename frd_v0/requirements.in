@@ -1,14 +1,16 @@
 # Library dependencies
-numpy>=1.23.5
-opencv_contrib_python_headless~=4.8.1.78
-Pillow~=10.3.0
-scipy~=1.10.0
-SimpleITK~=2.3.1
-pyradiomics==3.0.1a3
+# Install PyRadiomics from GitHub main branch
+git+https://github.com/Radiomics/pyradiomics.git@master#egg=pyradiomics
+numpy #>=1.23.5
+opencv_contrib_python_headless #~=4.8.1.78
+Pillow #~=10.3.0
+scipy #~=1.10.0
+SimpleITK #~=2.3.1
+#pyradiomics==3.0.1a3
 #tqdm~=4.64.1
 
 # Required for testing
-setuptools~=65.6.3
-pytest~=8.1.1
-nibabel~=3.2.1
-nox~=2024.4.15
+setuptools #~=65.6.3
+pytest #~=8.1.1
+nibabel #~=3.2.1
+nox #~=2024.4.15
