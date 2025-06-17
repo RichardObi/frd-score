@@ -3,7 +3,7 @@ numpy>=1.23.5
 opencv_contrib_python_headless~=4.8.1.78
 Pillow~=10.3.0
 scipy~=1.10.0
-SimpleITK~=2.3.1
+SimpleITK #~=2.3.1
 # Install PyRadiomics from GitHub main branch
 git+https://github.com/Radiomics/pyradiomics.git@master#egg=pyradiomics
 #pyradiomics==3.0.1a3
