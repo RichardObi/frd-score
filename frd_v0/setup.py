@@ -51,8 +51,10 @@ if __name__ == "__main__":
             ],
         },
         install_requires=[
-            "pyradiomics==3.0.1a3", #>=3.1.0", #~=3.0.1a3 #"pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics@releases/tag/v3.1.0",
-            "numpy>=1.23.5", # 1.26.4
+            #"pyradiomics==3.0.1a3", #>=3.1.0", #~=3.0.1a3 #
+            #"pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics@releases/tag/v3.1.0",
+            "pyradiomics @ git+https://github.com/Radiomics/pyradiomics.git@master#egg=pyradiomics"
+            "numpy" #>=1.23.5", # 1.26.4
             "Pillow>=10.3.0",
             "scipy>=1.10.0",
             "opencv_contrib_python_headless>=4.8.1.78",
