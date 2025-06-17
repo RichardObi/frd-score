@@ -204,7 +204,8 @@ class TestFRD:
 
         # Now we create a few random masks to test FDR generation with masks
         # generate a few random images and test if frd calculation works for all allowed image file extensions
-        rand_x = int(random.uniform(0, 1) * 64)
+        # Guarantee that the random mask is not too small, i.e. at least one pixel.
+        rand_x = int(random.uniform(1, 1) * 64)
         rand_y = int(random.uniform(0, 1) * 64)
         rand_z = int(random.uniform(0, 1) * 20)
         in_mask_arr_1 = np.zeros_like(in_arr_1_a) * 255  # np.zeros(64, 64, 20, 1) * 255
