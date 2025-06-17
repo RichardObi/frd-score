@@ -21,6 +21,10 @@ def tests(session):
     #session.install("numpy") #get numpy's again, but now overwriting requirements.in file to get numpy's latest version based on python version (e.g. python3.12)
     session.install("frd_v0/.")
     #session.install("frd_v1/.")
+
+    # Install PyRadiomics from GitHub (main branch): This is in case previous installs of the frd dir have incompatible versions (e.g. numpy <2.0)
+    session.install("git+https://github.com/Radiomics/pyradiomics.git@master#egg=pyradiomics")
+
     session.install("pytest")
     session.install("pytest-mock")
     session.run("pytest", *session.posargs)
