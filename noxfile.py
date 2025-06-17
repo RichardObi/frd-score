@@ -18,12 +18,12 @@ def tests(session):
     session.install("-r", "frd_v0/requirements.in")
     # Note: Pyradiomics might need to be installed from github in order for compatibility with python versions >3.9
     # https://github.com/AIM-Harvard/pyradiomics/issues/903
-    #session.install("numpy") #get numpy's again, but now overwriting requirements.in file to get numpy's latest version based on python version (e.g. python3.12)
     session.install("frd_v0/.")
     #session.install("frd_v1/.")
 
     # Install PyRadiomics from GitHub (main branch): This is in case previous installs of the frd dir have incompatible versions (e.g. numpy <2.0)
     session.install("git+https://github.com/Radiomics/pyradiomics.git@master#egg=pyradiomics")
+    session.install("numpy") #get numpy's again, but now overwriting requirements.in file to get numpy's latest version based on python version (e.g. python3.12)
 
     session.install("pytest")
     session.install("pytest-mock")
