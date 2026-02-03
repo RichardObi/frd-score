@@ -1,4 +1,5 @@
 <!---[![PyPI](https://img.shields.io/pypi/v/frd-score.svg)](https://pypi.org/project/frd-score/)--->
+## Announcement: the FRD paper has been accepted to [Medical Image Analysis](https://www.sciencedirect.com/science/article/pii/S1361841526000125)!
 
 # FRD (Fréchet Radiomic Distance): A Metric Designed for Medical Image Distribution Comparison in the Age of Deep Learning
 
@@ -26,13 +27,12 @@ Determining whether two sets of images belong to the same or different distribut
 Please cite our most paper if you use our code or reference our work:
 
 ```bib
-@article{konzosuala_frd2025,
-      title={Fr\'echet Radiomic Distance (FRD): A Versatile Metric for Comparing Medical Imaging Datasets}, 
-      author = {Konz, Nicholas and Osuala, Richard and Verma, Preeti and Chen, Yuwen and Gu, Hanxue and Dong, Haoyu and Chen, Yaqian and Marshall, Andrew and Garrucho, Lidia and Kushibar, Kaisar and Lang, Daniel M. and Kim, Gene S. and Grimm, Lars J. and Lewin, John M. and Duncan, James S. and Schnabel, Julia A. and Diaz, Oliver and Lekadir, Karim and Mazurowski, Maciej A.},
-      year={2025},
-      eprint={2412.01496},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2412.01496}, 
+@article{konzosuala_frd2026,
+  title         = {Fr\'echet Radiomic Distance (FRD): A Versatile Metric for Comparing Medical Imaging Datasets},
+  author        = {Nicholas Konz* and Richard Osuala* and Preeti Verma and Yuwen Chen and Hanxue Gu and Haoyu Dong and Yaqian Chen and Andrew Marshall and Lidia Garrucho and Kaisar Kushibar and Daniel M. Lang and Gene S. Kim and Lars J. Grimm and John M. Lewin and James S. Duncan and Julia A. Schnabel and Oliver Diaz and Karim Lekadir and Maciej A. Mazurowski},
+  year          = {2026},
+  journal={Medical Image Analysis},
+  pages={103943},
+  publisher={Elsevier}
 }
 ```
