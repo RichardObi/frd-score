@@ -1,5 +1,5 @@
 <!---[![PyPI](https://img.shields.io/pypi/v/frd-score.svg)](https://pypi.org/project/frd-score/)--->
-## Announcement: the FRD paper has been accepted to [Medical Image Analysis](https://www.sciencedirect.com/science/article/pii/S1361841526000125)!
+## NEWS 1/9/26: 🎉 the FRD paper has been accepted to [Medical Image Analysis](https://www.sciencedirect.com/science/article/pii/S1361841526000125) 🎉!
 
 # FRD (Fréchet Radiomic Distance): A Metric Designed for Medical Image Distribution Comparison in the Age of Deep Learning
 
@@ -24,7 +24,7 @@ Determining whether two sets of images belong to the same or different distribut
 
 ## Citation
 
-Please cite our most paper if you use our code or reference our work:
+Please cite our journal article if you use our code or reference our work:
 
 ```bib
 @article{konzosuala_frd2026,
