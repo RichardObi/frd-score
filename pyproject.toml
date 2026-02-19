@@ -19,4 +19,6 @@ filterwarnings = [
     "ignore::RuntimeWarning:scipy",
     "ignore::RuntimeWarning:numpy",
     "ignore::DeprecationWarning:importlib",
+    "ignore::scipy.linalg.LinAlgWarning",
+    "ignore:norm_ref='independent':UserWarning",
 ]

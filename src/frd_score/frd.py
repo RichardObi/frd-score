@@ -984,7 +984,9 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6, means_only=Fa
     diff = mu1 - mu2
 
     # Product might be almost singular
-    covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        covmean = linalg.sqrtm(sigma1.dot(sigma2))
     if not np.isfinite(covmean).all():
         msg = (
             "Frechet distance produces singular product; "
@@ -992,7 +994,9 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6, means_only=Fa
         ) % eps
         logging.debug(msg)
         offset = np.eye(sigma1.shape[0]) * eps
-        covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
 
     # Numerical error might give slight imaginary component
     if np.iscomplexobj(covmean):
@@ -1061,9 +1065,10 @@ def z_score_normalize(
                 )
                 normalized_features[:, idx] = 0 + float(new_min)
             else:
-                normalized_features[:, idx] = (
-                    (features[:, idx] - mean_val) / std_val
-                ) * (float(new_max) - float(new_min)) + float(new_min)
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    normalized_features[:, idx] = (
+                        (features[:, idx] - mean_val) / std_val
+                    ) * (float(new_max) - float(new_min)) + float(new_min)
 
     if replace_nan:
         nan_indices = np.isnan(normalized_features)
