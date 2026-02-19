@@ -31,7 +31,7 @@ if __name__ == "__main__":
         license="Apache-2.0",
         long_description_content_type="text/markdown",
         url="https://github.com/RichardObi/frd-score",
-        download_url="https://github.com/RichardObi/frd-score/archive/refs/tags/v1.1.0.tar.gz",
+        download_url=f"https://github.com/RichardObi/frd-score/archive/refs/tags/v{get_version(os.path.join('src', 'frd_score', '__init__.py'))}.tar.gz",
         project_urls={
             "Bug Tracker": "https://github.com/RichardObi/frd-score/issues",
             "Documentation": "https://richardobi.github.io/frd-score/",
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         package_dir={"": "src"},
         packages=setuptools.find_packages(where="src"),
         package_data={
-            "frd_score": ["configs/*.yaml"],
+            "frd_score": ["configs/*.yaml", "py.typed"],
         },
         classifiers=[
             "Development Status :: 4 - Beta",

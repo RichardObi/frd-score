@@ -342,9 +342,16 @@ def _add_shared_extraction_args(parser):
 
 
 def parse_args() -> argparse.Namespace:
+    from . import __version__
+
     parser = argparse.ArgumentParser(
         description="Calculates the Frechet Radiomics Distance between two distributions of extracted pyradiomics "
         "features."
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
 
     # ── Subcommands ───────────────────────────────────────────────────────────
@@ -743,7 +750,7 @@ def process_image_mask_pair(
         sitk_image_resized = sitk.GetImageFromArray(sitk_image_array_resized)
         try:
             sitk_image_resized.CopyInformation(sitk_image)
-        except:
+        except Exception:
             pass
         sitk_image = sitk_image_resized
 
@@ -757,7 +764,7 @@ def process_image_mask_pair(
         sitk_mask_resized = sitk.GetImageFromArray(sitk_mask_array_resized)
         try:
             sitk_mask_resized.CopyInformation(sitk_mask)
-        except:
+        except Exception:
             pass
         sitk_mask = sitk_mask_resized
 
@@ -1323,8 +1330,7 @@ def detect_ood(
     """
     from scipy import stats as sps
 
-    if seed is not None:
-        np.random.seed(seed)
+    rng = np.random.default_rng(seed)
 
     feats_ref = feature_list[0]
     feats_test = feature_list[1]
@@ -1334,7 +1340,7 @@ def detect_ood(
         # Split reference into train/val
         n_ref = feats_ref.shape[0]
         n_val = max(1, int(val_frac * n_ref))
-        val_idx = np.random.choice(n_ref, n_val, replace=False)
+        val_idx = rng.choice(n_ref, n_val, replace=False)
         train_idx = np.array([i for i in range(n_ref) if i not in val_idx])
         ref_train = feats_ref[train_idx]
         ref_val = feats_ref[val_idx]
@@ -1394,7 +1400,13 @@ def detect_ood(
         print(f"Threshold: {threshold:.4f}, OOD detected: {int(predictions.sum())}/{len(predictions)}")
 
     elif detection_type == "dataset":
-        from sklearn.metrics import roc_auc_score
+        try:
+            from sklearn.metrics import roc_auc_score
+        except ImportError:
+            raise ImportError(
+                "Dataset-level OOD detection requires scikit-learn. "
+                "Install with: pip install scikit-learn"
+            )
 
         all_scores = np.concatenate([val_scores, test_scores])
         all_labels = np.concatenate([np.zeros(len(val_scores)), np.ones(len(test_scores))])
@@ -1444,6 +1456,8 @@ def calculate_feature_statistics(
 
     feature_list = []
     feature_names = []
+    all_radiomics_results = []
+    all_mask_paths = []
 
     for idx, file_list in enumerate(file_lists):
         features, radiomics_results, mask_paths = compute_features(
@@ -1470,6 +1484,8 @@ def calculate_feature_statistics(
 
         feature_list.append(features)
         feature_names = list(radiomics_results[0].keys())
+        all_radiomics_results.append(radiomics_results)
+        all_mask_paths.append(mask_paths)
 
     # ── Exclude feature categories ──
     if exclude_features:
@@ -1578,13 +1594,19 @@ def calculate_feature_statistics(
                 storage_dir,
                 f"radiomics_set{idx}_results_normalized_{folder_name}_{unique_identifier}.csv",
             )
-            # NOTE: saving raw features; norm csv currently also saves raw features
-            # for consistency with v0 behavior.
             save_features_to_csv(
-                csv_file_path, file_lists[idx], mask_paths, radiomics_results
+                csv_file_path, file_lists[idx], all_mask_paths[idx], all_radiomics_results[idx]
             )
+            # Save normalized features as dicts for the normalized CSV
+            norm_dicts = []
+            for row_idx in range(normalized_features.shape[0]):
+                norm_dicts.append(
+                    {fn: float(normalized_features[row_idx, col_idx])
+                     for col_idx, fn in enumerate(feature_names)}
+                )
+            norm_mask_paths = all_mask_paths[idx] if all_mask_paths[idx] else [None] * len(file_lists[idx])
             save_features_to_csv(
-                norm_csv_file_path, file_lists[idx], mask_paths, radiomics_results
+                norm_csv_file_path, file_lists[idx], norm_mask_paths, norm_dicts
             )
 
     return mu_list, sigma_list, normalized_feature_list, feature_names
@@ -1609,8 +1631,18 @@ def compute_statistics_of_paths(
 
     if not isinstance(paths[0], list) and paths[0].endswith(".npz"):
         with np.load(paths[0]) as f:
-            m, s = f["mu"][:], f["sigma"][:]
-        # TODO: handle npz for second path if needed
+            mu1, sigma1 = f["mu"][:], f["sigma"][:]
+        if len(paths) < 2:
+            return [mu1], [sigma1], [], []
+        if not isinstance(paths[1], list) and paths[1].endswith(".npz"):
+            with np.load(paths[1]) as f:
+                mu2, sigma2 = f["mu"][:], f["sigma"][:]
+            return [mu1, mu2], [sigma1, sigma2], [], []
+        else:
+            raise ValueError(
+                "When the first path is a .npz file, the second path must also "
+                "be a .npz file, or use image directories for both paths."
+            )
     else:
         file_lists = []
         mask_lists = []
@@ -1645,11 +1677,12 @@ def compute_statistics_of_paths(
                             ]
                         )
                     )
-            if len(mask_lists) > 0 and len(mask_lists[-1] or []) != len(file_lists[-1]):
-                logging.warning(
-                    f"Number of mask files ({len(mask_lists[-1] or [])}) != "
-                    f"number of images ({len(file_lists[-1])}). Please verify."
-                )
+            for midx, (ml, fl) in enumerate(zip(mask_lists, file_lists)):
+                if ml is not None and len(ml) != len(fl):
+                    logging.warning(
+                        f"Distribution {midx}: Number of mask files ({len(ml)}) != "
+                        f"number of images ({len(fl)}). Please verify."
+                    )
         else:
             mask_lists = [None] * len(paths)
             if verbose:
@@ -1938,6 +1971,11 @@ def save_frd_stats(
     norm_type, norm_range, features, image_types, norm_ref = _resolve_defaults(
         frd_version, norm_type, norm_range, features, image_types, norm_ref=norm_ref
     )
+
+    if norm_ref not in NORM_REF_OPTIONS:
+        raise ValueError(
+            f"Unknown norm_ref '{norm_ref}'. Must be one of {sorted(NORM_REF_OPTIONS)}."
+        )
 
     if not isinstance(paths[0], list) and not os.path.exists(paths[0]):
         raise RuntimeError(

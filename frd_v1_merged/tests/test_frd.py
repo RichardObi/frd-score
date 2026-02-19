@@ -5,7 +5,6 @@ Run using: pytest -rP frd_v1_merged/tests/test_frd.py
 
 import logging
 import os
-import random
 import sys
 from pathlib import Path
 
@@ -31,12 +30,12 @@ class TestFRDv1_2D:
         stream_handler.setFormatter(formatter)
         self.logger.addHandler(stream_handler)
 
-    def test_frd_v1_2d(self):
+    def test_frd_v1_2d(self, tmp_path):
         """Test FRD v1 with 2D grayscale images (default version)."""
         self.get_logger()
         self.logger.info("Testing FRD v1 metric for 2D data")
-        path_a = "tmp_v1_2d_a"
-        path_b = "tmp_v1_2d_b"
+        path_a = str(tmp_path / "tmp_v1_2d_a")
+        path_b = str(tmp_path / "tmp_v1_2d_b")
 
         in_arr_1 = np.random.rand(128, 128) * 255
         in_arr_2 = np.random.rand(128, 128) * 255
@@ -53,30 +52,25 @@ class TestFRDv1_2D:
         in_image_2.save(f"{path_b}/img1.png")
         in_image_2.save(f"{path_b}/img2.png")
 
-        try:
-            paths = [path_a, path_b]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v1",
-                verbose=True,
-                save_features=False,
-                norm_ref="joint",
-            )
-            self.logger.warning(f"FRD v1 2D value: {frd_value}")
-            print(f"FRD v1 2D value: {frd_value}")
-            # v1 returns log-transformed value
-            assert isinstance(frd_value, (float, np.floating)), \
-                f"FRD v1 should return a float, got {type(frd_value)}"
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        paths = [path_a, path_b]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v1",
+            verbose=True,
+            save_features=False,
+            norm_ref="joint",
+        )
+        self.logger.warning(f"FRD v1 2D value: {frd_value}")
+        print(f"FRD v1 2D value: {frd_value}")
+        # v1 returns log-transformed value
+        assert isinstance(frd_value, (float, np.floating)), \
+            f"FRD v1 should return a float, got {type(frd_value)}"
 
-    def test_frd_v1_2d_default_version(self):
+    def test_frd_v1_2d_default_version(self, tmp_path):
         """Verify that not passing frd_version defaults to v1."""
         self.get_logger()
-        path_a = "tmp_v1_default_a"
-        path_b = "tmp_v1_default_b"
+        path_a = str(tmp_path / "tmp_v1_default_a")
+        path_b = str(tmp_path / "tmp_v1_default_b")
 
         in_arr = np.random.rand(64, 64) * 255
         in_image = Image.fromarray(in_arr.astype(np.uint8), mode="L")
@@ -89,19 +83,14 @@ class TestFRDv1_2D:
         in_image.save(f"{path_b}/img1.png")
         in_image.save(f"{path_b}/img2.png")
 
-        try:
-            # No frd_version argument — should default to v1
-            frd_value = frd.compute_frd(
-                [path_a, path_b],
-                verbose=False,
-                save_features=False,
-            )
-            print(f"FRD default version value: {frd_value}")
-            assert isinstance(frd_value, (float, np.floating))
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        # No frd_version argument — should default to v1
+        frd_value = frd.compute_frd(
+            [path_a, path_b],
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD default version value: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
 
 
 class TestFRDv0_2D:
@@ -119,12 +108,12 @@ class TestFRDv0_2D:
         stream_handler.setFormatter(formatter)
         self.logger.addHandler(stream_handler)
 
-    def test_frd_v0_2d(self):
+    def test_frd_v0_2d(self, tmp_path):
         """Test FRD v0 with various 2D image formats and options."""
         self.get_logger()
         self.logger.info("Testing FRD v0 metric for 2D data")
-        path_a = "tmp_v0_2d_a"
-        path_b = "tmp_v0_2d_b"
+        path_a = str(tmp_path / "tmp_v0_2d_a")
+        path_b = str(tmp_path / "tmp_v0_2d_b")
 
         in_arr_1 = np.random.rand(128, 128, 3) * 255
         in_arr_2 = np.random.rand(128, 128) * 255
@@ -140,42 +129,37 @@ class TestFRDv0_2D:
                 in_image_1.save(f"{path_a}/img.{ext}")
                 in_image_2.save(f"{path_b}/img.{ext}")
 
-        try:
-            # Test save_frd_stats with v0
-            paths = [path_a, f"{path_a}/statistics_v0.npz"]
-            frd.save_frd_stats(
-                paths,
-                frd_version="v0",
-                paths_masks=None,
-                resize_size=120,
-                verbose=True,
-                save_features=True,
-            )
-            assert os.path.exists(f"{path_a}/statistics_v0.npz"), \
-                "NPZ statistics file was not created."
+        # Test save_frd_stats with v0
+        paths = [path_a, f"{path_a}/statistics_v0.npz"]
+        frd.save_frd_stats(
+            paths,
+            frd_version="v0",
+            paths_masks=None,
+            resize_size=120,
+            verbose=True,
+            save_features=True,
+        )
+        assert os.path.exists(f"{path_a}/statistics_v0.npz"), \
+            "NPZ statistics file was not created."
 
-            # Test compute_frd with v0
-            paths = [path_a, path_b]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v0",
-                norm_type="zscore",
-                norm_range=[0, 7.45670747756958],
-                paths_masks=None,
-                resize_size=224,
-                verbose=True,
-                save_features=False,
-                norm_ref="independent",
-            )
-            self.logger.warning(f"FRD v0 2D value: {frd_value}")
-            print(f"FRD v0 2D value: {frd_value}")
-            # v0 returns raw Frechet distance (not log-transformed)
-            assert isinstance(frd_value, (float, np.floating)), \
-                f"FRD v0 should return a float, got {type(frd_value)}"
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        # Test compute_frd with v0
+        paths = [path_a, path_b]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v0",
+            norm_type="zscore",
+            norm_range=[0, 7.45670747756958],
+            paths_masks=None,
+            resize_size=224,
+            verbose=True,
+            save_features=False,
+            norm_ref="independent",
+        )
+        self.logger.warning(f"FRD v0 2D value: {frd_value}")
+        print(f"FRD v0 2D value: {frd_value}")
+        # v0 returns raw Frechet distance (not log-transformed)
+        assert isinstance(frd_value, (float, np.floating)), \
+            f"FRD v0 should return a float, got {type(frd_value)}"
 
 
 class TestFRDv0_3D:
@@ -193,12 +177,12 @@ class TestFRDv0_3D:
         stream_handler.setFormatter(formatter)
         self.logger.addHandler(stream_handler)
 
-    def test_frd_v0_3d(self):
+    def test_frd_v0_3d(self, tmp_path):
         """Test FRD v0 with 3D NIfTI images, masks, and different path modes."""
         self.get_logger()
         self.logger.info("Testing FRD v0 metric for 3D data")
-        path_a = "tmp_v0_3d_a"
-        path_b = "tmp_v0_3d_b"
+        path_a = str(tmp_path / "tmp_v0_3d_a")
+        path_b = str(tmp_path / "tmp_v0_3d_b")
 
         in_arr_1_a = np.random.rand(64, 64, 20, 1) * 255
         in_arr_1_b = np.random.rand(64, 64, 20, 1) * 255
@@ -221,42 +205,39 @@ class TestFRDv0_3D:
                 nib.save(in_image_1_b, f"{path_a}/img{i}.nii.gz")
                 nib.save(in_image_2_b, f"{path_b}/img{i}.nii.gz")
 
-        try:
-            # Test different distributions → FRD should be non-zero
-            paths = [path_a, path_b]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v0",
-                norm_type="minmax",
-                norm_range=[1, 30],
-                paths_masks=None,
-                resize_size=64,
-                verbose=True,
-                save_features=False,
-                norm_ref="independent",
-            )
-            self.logger.warning(f"FRD v0 3D different images: {frd_value}")
-            assert frd_value != 0.0, \
-                f"FRD 3D should not be 0 for different images. Got: {frd_value}"
+        # Test different distributions → FRD should be non-zero
+        paths = [path_a, path_b]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v0",
+            norm_type="minmax",
+            norm_range=[1, 30],
+            paths_masks=None,
+            resize_size=64,
+            verbose=True,
+            save_features=False,
+            norm_ref="independent",
+        )
+        self.logger.warning(f"FRD v0 3D different images: {frd_value}")
+        assert frd_value != 0.0, \
+            f"FRD 3D should not be 0 for different images. Got: {frd_value}"
 
-            # Same distribution → FRD should be ~0
-            paths = [path_a, path_a]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v0",
-                norm_type="minmax",
-                norm_range=[0.0, 5.0],
-                paths_masks=None,
-                resize_size=None,
-                verbose=True,
-                save_features=False,
-                norm_ref="independent",
-            )
-            self.logger.warning(f"FRD v0 3D identical datasets: {frd_value}")
-            assert abs(frd_value) < 0.001, \
-                f"FRD should be ~0 for identical distributions. Got: {frd_value}"
-        except Exception as e:
-            raise e
+        # Same distribution → FRD should be ~0
+        paths = [path_a, path_a]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v0",
+            norm_type="minmax",
+            norm_range=[0.0, 5.0],
+            paths_masks=None,
+            resize_size=None,
+            verbose=True,
+            save_features=False,
+            norm_ref="independent",
+        )
+        self.logger.warning(f"FRD v0 3D identical datasets: {frd_value}")
+        assert abs(frd_value) < 0.001, \
+            f"FRD should be ~0 for identical distributions. Got: {frd_value}"
 
         # --- Test with masks ---
         # Guarantee non-empty masks by using fixed, known-good regions
@@ -278,68 +259,63 @@ class TestFRDv0_3D:
             nib.save(mask_nib_1, f"{path_a}_mask/mask{i}.nii.gz")
             nib.save(mask_nib_2, f"{path_b}_mask/mask{i}.nii.gz")
 
-        try:
-            # Same images, different masks → FRD > 1.0
-            paths_mask = [f"{path_a}_mask", f"{path_b}_mask"]
-            paths = [path_a, path_a]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v0",
-                norm_type="minmax",
-                norm_range=[0.0, 7.0],
-                paths_masks=paths_mask,
-                resize_size=None,
-                verbose=True,
-                save_features=False,
-                norm_ref="joint",
-                num_workers=1,
-            )
-            self.logger.warning(f"FRD v0 3D with masks: {frd_value}")
-            assert frd_value > 1.0, \
-                f"FRD 3D with different masks should be >1.0. Got: {frd_value}"
+        # Same images, different masks → FRD > 1.0
+        paths_mask = [f"{path_a}_mask", f"{path_b}_mask"]
+        paths = [path_a, path_a]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v0",
+            norm_type="minmax",
+            norm_range=[0.0, 7.0],
+            paths_masks=paths_mask,
+            resize_size=None,
+            verbose=True,
+            save_features=False,
+            norm_ref="joint",
+            num_workers=1,
+        )
+        self.logger.warning(f"FRD v0 3D with masks: {frd_value}")
+        assert frd_value > 1.0, \
+            f"FRD 3D with different masks should be >1.0. Got: {frd_value}"
 
-            # Different images, different masks → non-zero
-            paths = [path_a, path_b]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v0",
-                norm_type="minmax",
-                norm_range=[0.0, 7.0],
-                paths_masks=paths_mask,
-                resize_size=None,
-                verbose=True,
-                save_features=False,
-                norm_ref="joint",
-            )
-            assert frd_value != 0.0, \
-                f"FRD 3D with different masks should not be 0. Got: {frd_value}"
+        # Different images, different masks → non-zero
+        paths = [path_a, path_b]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v0",
+            norm_type="minmax",
+            norm_range=[0.0, 7.0],
+            paths_masks=paths_mask,
+            resize_size=None,
+            verbose=True,
+            save_features=False,
+            norm_ref="joint",
+        )
+        assert frd_value != 0.0, \
+            f"FRD 3D with different masks should not be 0. Got: {frd_value}"
 
-            # List-of-paths mode
-            paths = [
-                [f"{path_a}/img{i}.nii.gz" for i in range(5)],
-                [f"{path_b}/img{i}.nii.gz" for i in range(10)],
-            ]
-            paths_mask = [
-                [f"{path_b}_mask/mask{i}.nii.gz" for i in range(8)],
-                [f"{path_b}_mask/mask{i}.nii.gz" for i in range(10)],
-            ]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v0",
-                norm_type="minmax",
-                norm_range=[0.0, 7.0],
-                paths_masks=paths_mask,
-                resize_size=None,
-                verbose=True,
-                save_features=False,
-                norm_ref="joint",
-            )
-            assert frd_value != 0.0, \
-                f"FRD 3D with list-of-paths should not be 0. Got: {frd_value}"
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b} {path_a}_mask {path_b}_mask")
+        # List-of-paths mode
+        paths = [
+            [f"{path_a}/img{i}.nii.gz" for i in range(5)],
+            [f"{path_b}/img{i}.nii.gz" for i in range(10)],
+        ]
+        paths_mask = [
+            [f"{path_b}_mask/mask{i}.nii.gz" for i in range(8)],
+            [f"{path_b}_mask/mask{i}.nii.gz" for i in range(10)],
+        ]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v0",
+            norm_type="minmax",
+            norm_range=[0.0, 7.0],
+            paths_masks=paths_mask,
+            resize_size=None,
+            verbose=True,
+            save_features=False,
+            norm_ref="joint",
+        )
+        assert frd_value != 0.0, \
+            f"FRD 3D with list-of-paths should not be 0. Got: {frd_value}"
 
 
 class TestFRDv1_3D:
@@ -357,12 +333,12 @@ class TestFRDv1_3D:
         stream_handler.setFormatter(formatter)
         self.logger.addHandler(stream_handler)
 
-    def test_frd_v1_3d(self):
+    def test_frd_v1_3d(self, tmp_path):
         """Test FRD v1 with 3D NIfTI images (extended feature space)."""
         self.get_logger()
         self.logger.info("Testing FRD v1 metric for 3D data")
-        path_a = "tmp_v1_3d_a"
-        path_b = "tmp_v1_3d_b"
+        path_a = str(tmp_path / "tmp_v1_3d_a")
+        path_b = str(tmp_path / "tmp_v1_3d_b")
 
         in_arr_1_a = np.random.rand(64, 64, 20, 1) * 255
         in_arr_1_b = np.random.rand(64, 64, 20, 1) * 255
@@ -385,23 +361,18 @@ class TestFRDv1_3D:
                 nib.save(in_image_1_b, f"{path_a}/img{i}.nii.gz")
                 nib.save(in_image_2_b, f"{path_b}/img{i}.nii.gz")
 
-        try:
-            paths = [path_a, path_b]
-            frd_value = frd.compute_frd(
-                paths,
-                frd_version="v1",
-                verbose=True,
-                save_features=False,
-                norm_ref="joint",
-            )
-            self.logger.warning(f"FRD v1 3D value: {frd_value}")
-            print(f"FRD v1 3D value: {frd_value}")
-            assert isinstance(frd_value, (float, np.floating)), \
-                f"FRD v1 should return a float, got {type(frd_value)}"
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        paths = [path_a, path_b]
+        frd_value = frd.compute_frd(
+            paths,
+            frd_version="v1",
+            verbose=True,
+            save_features=False,
+            norm_ref="joint",
+        )
+        self.logger.warning(f"FRD v1 3D value: {frd_value}")
+        print(f"FRD v1 3D value: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating)), \
+            f"FRD v1 should return a float, got {type(frd_value)}"
 
 
 class TestUnifiedParams:
@@ -419,117 +390,92 @@ class TestUnifiedParams:
 
     # ── feature_groups on v1 ──────────────────────────────────────────────────
 
-    def test_v1_with_feature_groups(self):
+    def test_v1_with_feature_groups(self, tmp_path):
         """v1 should accept --feature_groups to restrict which feature classes are extracted."""
-        path_a, path_b = "tmp_unified_fg_a", "tmp_unified_fg_b"
+        path_a, path_b = str(tmp_path / "tmp_unified_fg_a"), str(tmp_path / "tmp_unified_fg_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            # Restrict v1 to only firstorder + glcm (fewer features → faster, different value)
-            frd_value = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                features=["firstorder", "glcm"],
-                verbose=False,
-                save_features=False,
-            )
-            print(f"FRD v1 (feature_groups=[firstorder,glcm]): {frd_value}")
-            assert isinstance(frd_value, (float, np.floating))
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        # Restrict v1 to only firstorder + glcm (fewer features → faster, different value)
+        frd_value = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            features=["firstorder", "glcm"],
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD v1 (feature_groups=[firstorder,glcm]): {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
 
-    def test_v1_feature_groups_adds_missing_class(self):
+    def test_v1_feature_groups_adds_missing_class(self, tmp_path):
         """v1 YAML doesn't include gldm by default — feature_groups should enable it."""
-        path_a, path_b = "tmp_unified_fg2_a", "tmp_unified_fg2_b"
+        path_a, path_b = str(tmp_path / "tmp_unified_fg2_a"), str(tmp_path / "tmp_unified_fg2_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            frd_value = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                features=["firstorder", "gldm"],
-                verbose=False,
-                save_features=False,
-            )
-            print(f"FRD v1 (feature_groups=[firstorder,gldm]): {frd_value}")
-            assert isinstance(frd_value, (float, np.floating))
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_value = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            features=["firstorder", "gldm"],
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD v1 (feature_groups=[firstorder,gldm]): {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
 
     # ── image_types on v0 ─────────────────────────────────────────────────────
 
-    def test_v0_with_wavelet_image_types(self):
+    def test_v0_with_wavelet_image_types(self, tmp_path):
         """v0 should be able to use Wavelet image type (a v1 feature) via image_types."""
-        path_a, path_b = "tmp_unified_it_a", "tmp_unified_it_b"
+        path_a, path_b = str(tmp_path / "tmp_unified_it_a"), str(tmp_path / "tmp_unified_it_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            frd_value = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v0",
-                image_types=["Original", "Wavelet"],
-                verbose=False,
-                save_features=False,
-            )
-            print(f"FRD v0 (image_types=[Original,Wavelet]): {frd_value}")
-            assert isinstance(frd_value, (float, np.floating))
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_value = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v0",
+            image_types=["Original", "Wavelet"],
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD v0 (image_types=[Original,Wavelet]): {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
 
-    def test_v0_with_log_image_type(self):
+    def test_v0_with_log_image_type(self, tmp_path):
         """v0 should be able to use LoG image type via image_types."""
-        path_a, path_b = "tmp_unified_log_a", "tmp_unified_log_b"
+        path_a, path_b = str(tmp_path / "tmp_unified_log_a"), str(tmp_path / "tmp_unified_log_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            frd_value = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v0",
-                image_types=["Original", "LoG"],
-                verbose=False,
-                save_features=False,
-            )
-            print(f"FRD v0 (image_types=[Original,LoG]): {frd_value}")
-            assert isinstance(frd_value, (float, np.floating))
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_value = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v0",
+            image_types=["Original", "LoG"],
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD v0 (image_types=[Original,LoG]): {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
 
     # ── image_types on v1 (restrict) ──────────────────────────────────────────
 
-    def test_v1_restrict_to_original_only(self):
+    def test_v1_restrict_to_original_only(self, tmp_path):
         """v1 should be able to restrict to Original-only via image_types."""
-        path_a, path_b = "tmp_unified_v1orig_a", "tmp_unified_v1orig_b"
+        path_a, path_b = str(tmp_path / "tmp_unified_v1orig_a"), str(tmp_path / "tmp_unified_v1orig_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            frd_value = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                image_types=["Original"],
-                verbose=False,
-                save_features=False,
-            )
-            print(f"FRD v1 (image_types=[Original]): {frd_value}")
-            assert isinstance(frd_value, (float, np.floating))
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_value = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            image_types=["Original"],
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD v1 (image_types=[Original]): {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
 
     # ── masks on v1 (confirm they work) ───────────────────────────────────────
 
-    def test_v1_with_masks(self):
+    def test_v1_with_masks(self, tmp_path):
         """v1 should fully support mask paths (originally a v0 feature)."""
-        path_a, path_b = "tmp_unified_mask_a", "tmp_unified_mask_b"
-        mask_a, mask_b = "tmp_unified_mask_a_m", "tmp_unified_mask_b_m"
+        path_a, path_b = str(tmp_path / "tmp_unified_mask_a"), str(tmp_path / "tmp_unified_mask_b")
+        mask_a, mask_b = str(tmp_path / "tmp_unified_mask_a_m"), str(tmp_path / "tmp_unified_mask_b_m")
         self._make_2d_images(path_a, path_b, n=2)
 
         # Create mask images (white rectangle in center)
@@ -541,20 +487,15 @@ class TestUnifiedParams:
             Image.fromarray(mask_arr, mode="L").save(f"{mask_a}/img{i}.png")
             Image.fromarray(mask_arr, mode="L").save(f"{mask_b}/img{i}.png")
 
-        try:
-            frd_value = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                paths_masks=[mask_a, mask_b],
-                verbose=False,
-                save_features=False,
-            )
-            print(f"FRD v1 with masks: {frd_value}")
-            assert isinstance(frd_value, (float, np.floating))
-        except Exception as e:
-            raise e
-        finally:
-            os.system(f"rm -rf {path_a} {path_b} {mask_a} {mask_b}")
+        frd_value = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            paths_masks=[mask_a, mask_b],
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD v1 with masks: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
 
 
 class TestPaperLogTransform:
@@ -570,88 +511,79 @@ class TestPaperLogTransform:
             Image.fromarray(arr_a.astype(np.uint8), mode="L").save(f"{path_a}/img{i}.png")
             Image.fromarray(arr_b.astype(np.uint8), mode="L").save(f"{path_b}/img{i}.png")
 
-    def test_v1_default_log_is_code_convention(self):
+    def test_v1_default_log_is_code_convention(self, tmp_path):
         """Default v1 FRD should use log(d_F^2) (original code convention)."""
-        path_a, path_b = "tmp_paperlog_def_a", "tmp_paperlog_def_b"
+        path_a, path_b = str(tmp_path / "tmp_paperlog_def_a"), str(tmp_path / "tmp_paperlog_def_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            frd_default = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-            )
-            assert isinstance(frd_default, (float, np.floating))
-            print(f"FRD v1 default (log(d^2)): {frd_default}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_default = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+        )
+        assert isinstance(frd_default, (float, np.floating))
+        print(f"FRD v1 default (log(d^2)): {frd_default}")
 
-    def test_v1_paper_log_is_half_of_default(self):
+    def test_v1_paper_log_is_half_of_default(self, tmp_path):
         """Paper formula log(sqrt(d^2)) should equal 0.5 * log(d^2)."""
-        path_a, path_b = "tmp_paperlog_half_a", "tmp_paperlog_half_b"
+        path_a, path_b = str(tmp_path / "tmp_paperlog_half_a"), str(tmp_path / "tmp_paperlog_half_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            import warnings
+        import warnings
 
-            frd_default = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-                use_paper_log=False,
-            )
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always")
-                frd_paper = frd.compute_frd(
-                    [path_a, path_b],
-                    frd_version="v1",
-                    verbose=False,
-                    save_features=False,
-                    use_paper_log=True,
-                )
-                # Verify the warning was issued (filter for our specific UserWarning)
-                user_warnings = [x for x in w if issubclass(x.category, UserWarning)]
-                assert len(user_warnings) >= 1, f"Expected a UserWarning, got {w}"
-                assert "use_paper_log=True" in str(user_warnings[0].message)
-                assert "NOT directly comparable" in str(user_warnings[0].message)
-
-            print(f"FRD default: {frd_default}, FRD paper: {frd_paper}")
-            # Paper formula = 0.5 * default
-            assert np.isclose(frd_paper, 0.5 * frd_default, rtol=1e-10), (
-                f"Expected frd_paper ({frd_paper}) ≈ 0.5 * frd_default ({0.5 * frd_default})"
-            )
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
-
-    def test_v0_unaffected_by_paper_log(self):
-        """v0 should return the same value regardless of use_paper_log."""
-        path_a, path_b = "tmp_paperlog_v0_a", "tmp_paperlog_v0_b"
-        self._make_2d_images(path_a, path_b)
-
-        try:
-            frd_default = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v0",
-                verbose=False,
-                save_features=False,
-                use_paper_log=False,
-            )
+        frd_default = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            use_paper_log=False,
+        )
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
             frd_paper = frd.compute_frd(
                 [path_a, path_b],
-                frd_version="v0",
+                frd_version="v1",
                 verbose=False,
                 save_features=False,
                 use_paper_log=True,
             )
-            print(f"FRD v0 default: {frd_default}, v0 paper_log: {frd_paper}")
-            assert frd_default == frd_paper, (
-                f"v0 should not be affected by use_paper_log. "
-                f"Got default={frd_default}, paper={frd_paper}"
-            )
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+            # Verify the warning was issued (filter for our specific UserWarning)
+            user_warnings = [x for x in w if issubclass(x.category, UserWarning)]
+            assert len(user_warnings) >= 1, f"Expected a UserWarning, got {w}"
+            assert "use_paper_log=True" in str(user_warnings[0].message)
+            assert "NOT directly comparable" in str(user_warnings[0].message)
+
+        print(f"FRD default: {frd_default}, FRD paper: {frd_paper}")
+        # Paper formula = 0.5 * default
+        assert np.isclose(frd_paper, 0.5 * frd_default, rtol=1e-10), (
+            f"Expected frd_paper ({frd_paper}) ≈ 0.5 * frd_default ({0.5 * frd_default})"
+        )
+
+    def test_v0_unaffected_by_paper_log(self, tmp_path):
+        """v0 should return the same value regardless of use_paper_log."""
+        path_a, path_b = str(tmp_path / "tmp_paperlog_v0_a"), str(tmp_path / "tmp_paperlog_v0_b")
+        self._make_2d_images(path_a, path_b)
+
+        frd_default = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v0",
+            verbose=False,
+            save_features=False,
+            use_paper_log=False,
+        )
+        frd_paper = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v0",
+            verbose=False,
+            save_features=False,
+            use_paper_log=True,
+        )
+        print(f"FRD v0 default: {frd_default}, v0 paper_log: {frd_paper}")
+        assert frd_default == frd_paper, (
+            f"v0 should not be affected by use_paper_log. "
+            f"Got default={frd_default}, paper={frd_paper}"
+        )
 
 
 class TestNormRef:
@@ -667,40 +599,59 @@ class TestNormRef:
             Image.fromarray(arr_a.astype(np.uint8), mode="L").save(f"{path_a}/img{i}.png")
             Image.fromarray(arr_b.astype(np.uint8), mode="L").save(f"{path_b}/img{i}.png")
 
-    def test_all_three_modes_produce_valid_results(self):
+    def test_all_three_modes_produce_valid_results(self, tmp_path):
         """All norm_ref modes should produce valid float FRD values."""
-        path_a, path_b = "tmp_normref_modes_a", "tmp_normref_modes_b"
+        path_a, path_b = str(tmp_path / "tmp_normref_modes_a"), str(tmp_path / "tmp_normref_modes_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            results = {}
-            for mode in ["joint", "d1", "independent"]:
-                import warnings
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    frd_value = frd.compute_frd(
-                        [path_a, path_b],
-                        frd_version="v1",
-                        verbose=False,
-                        save_features=False,
-                        norm_ref=mode,
-                    )
-                results[mode] = frd_value
-                print(f"FRD v1 norm_ref={mode}: {frd_value}")
-                assert isinstance(frd_value, (float, np.floating)), \
-                    f"norm_ref={mode} should return a float, got {type(frd_value)}"
-            # All three modes may produce different values (normalization base differs)
-            print(f"All norm_ref mode results: {results}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
-
-    def test_independent_mode_warns(self):
-        """norm_ref='independent' should emit a UserWarning."""
-        path_a, path_b = "tmp_normref_warn_a", "tmp_normref_warn_b"
-        self._make_2d_images(path_a, path_b)
-
-        try:
+        results = {}
+        for mode in ["joint", "d1", "independent"]:
             import warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                frd_value = frd.compute_frd(
+                    [path_a, path_b],
+                    frd_version="v1",
+                    verbose=False,
+                    save_features=False,
+                    norm_ref=mode,
+                )
+            results[mode] = frd_value
+            print(f"FRD v1 norm_ref={mode}: {frd_value}")
+            assert isinstance(frd_value, (float, np.floating)), \
+                f"norm_ref={mode} should return a float, got {type(frd_value)}"
+        # All three modes may produce different values (normalization base differs)
+        print(f"All norm_ref mode results: {results}")
+
+    def test_independent_mode_warns(self, tmp_path):
+        """norm_ref='independent' should emit a UserWarning."""
+        path_a, path_b = str(tmp_path / "tmp_normref_warn_a"), str(tmp_path / "tmp_normref_warn_b")
+        self._make_2d_images(path_a, path_b)
+
+        import warnings
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            frd.compute_frd(
+                [path_a, path_b],
+                frd_version="v1",
+                verbose=False,
+                save_features=False,
+                norm_ref="independent",
+            )
+            user_warnings = [x for x in w if issubclass(x.category, UserWarning)
+                             and "norm_ref='independent'" in str(x.message)]
+            assert len(user_warnings) >= 1, (
+                f"Expected a UserWarning about norm_ref='independent', got {w}"
+            )
+            assert "comparability" in str(user_warnings[0].message).lower()
+
+    def test_joint_and_d1_no_warning(self, tmp_path):
+        """norm_ref='joint' and 'd1' should NOT emit the independent-mode warning."""
+        path_a, path_b = str(tmp_path / "tmp_normref_nowarn_a"), str(tmp_path / "tmp_normref_nowarn_b")
+        self._make_2d_images(path_a, path_b)
+
+        import warnings
+        for mode in ["joint", "d1"]:
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
                 frd.compute_frd(
@@ -708,98 +659,64 @@ class TestNormRef:
                     frd_version="v1",
                     verbose=False,
                     save_features=False,
-                    norm_ref="independent",
+                    norm_ref=mode,
                 )
-                user_warnings = [x for x in w if issubclass(x.category, UserWarning)
-                                 and "norm_ref='independent'" in str(x.message)]
-                assert len(user_warnings) >= 1, (
-                    f"Expected a UserWarning about norm_ref='independent', got {w}"
+                indep_warnings = [x for x in w if issubclass(x.category, UserWarning)
+                                  and "norm_ref='independent'" in str(x.message)]
+                assert len(indep_warnings) == 0, (
+                    f"norm_ref='{mode}' should not emit independent-mode warning, "
+                    f"but got: {indep_warnings}"
                 )
-                assert "comparability" in str(user_warnings[0].message).lower()
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
 
-    def test_joint_and_d1_no_warning(self):
-        """norm_ref='joint' and 'd1' should NOT emit the independent-mode warning."""
-        path_a, path_b = "tmp_normref_nowarn_a", "tmp_normref_nowarn_b"
-        self._make_2d_images(path_a, path_b)
-
-        try:
-            import warnings
-            for mode in ["joint", "d1"]:
-                with warnings.catch_warnings(record=True) as w:
-                    warnings.simplefilter("always")
-                    frd.compute_frd(
-                        [path_a, path_b],
-                        frd_version="v1",
-                        verbose=False,
-                        save_features=False,
-                        norm_ref=mode,
-                    )
-                    indep_warnings = [x for x in w if issubclass(x.category, UserWarning)
-                                      and "norm_ref='independent'" in str(x.message)]
-                    assert len(indep_warnings) == 0, (
-                        f"norm_ref='{mode}' should not emit independent-mode warning, "
-                        f"but got: {indep_warnings}"
-                    )
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
-
-    def test_d1_mode_uses_first_distribution_stats(self):
+    def test_d1_mode_uses_first_distribution_stats(self, tmp_path):
         """norm_ref='d1' should normalize both sets using only D1's statistics.
 
         When D1 == D2 (identical distributions), d1 and joint modes should produce
         the same result since the normalization base is equivalent.
         """
-        path_a = "tmp_normref_d1_a"
-        path_b = "tmp_normref_d1_b"
+        path_a = str(tmp_path / "tmp_normref_d1_a")
+        path_b = str(tmp_path / "tmp_normref_d1_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            import warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                # Same distribution -> d1 base == joint base -> results should match
-                frd_joint = frd.compute_frd(
-                    [path_a, path_a],
-                    frd_version="v1",
-                    verbose=False,
-                    save_features=False,
-                    norm_ref="joint",
-                )
-                frd_d1 = frd.compute_frd(
-                    [path_a, path_a],
-                    frd_version="v1",
-                    verbose=False,
-                    save_features=False,
-                    norm_ref="d1",
-                )
-            print(f"Same dist -- joint: {frd_joint}, d1: {frd_d1}")
-            # For identical paths, joint base == d1 base (both are just D1's features)
-            assert np.isclose(frd_joint, frd_d1, rtol=1e-6), (
-                f"With identical distributions, joint and d1 should match. "
-                f"Got joint={frd_joint}, d1={frd_d1}"
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # Same distribution -> d1 base == joint base -> results should match
+            frd_joint = frd.compute_frd(
+                [path_a, path_a],
+                frd_version="v1",
+                verbose=False,
+                save_features=False,
+                norm_ref="joint",
             )
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+            frd_d1 = frd.compute_frd(
+                [path_a, path_a],
+                frd_version="v1",
+                verbose=False,
+                save_features=False,
+                norm_ref="d1",
+            )
+        print(f"Same dist -- joint: {frd_joint}, d1: {frd_d1}")
+        # For identical paths, joint base == d1 base (both are just D1's features)
+        assert np.isclose(frd_joint, frd_d1, rtol=1e-6), (
+            f"With identical distributions, joint and d1 should match. "
+            f"Got joint={frd_joint}, d1={frd_d1}"
+        )
 
-    def test_invalid_norm_ref_raises(self):
+    def test_invalid_norm_ref_raises(self, tmp_path):
         """An invalid norm_ref value should raise ValueError."""
-        path_a, path_b = "tmp_normref_invalid_a", "tmp_normref_invalid_b"
+        path_a, path_b = str(tmp_path / "tmp_normref_invalid_a"), str(tmp_path / "tmp_normref_invalid_b")
         self._make_2d_images(path_a, path_b)
 
-        try:
-            import pytest
-            with pytest.raises(ValueError, match="Unknown norm_ref"):
-                frd.compute_frd(
-                    [path_a, path_b],
-                    frd_version="v1",
-                    verbose=False,
-                    save_features=False,
-                    norm_ref="invalid_mode",
-                )
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        import pytest
+        with pytest.raises(ValueError, match="Unknown norm_ref"):
+            frd.compute_frd(
+                [path_a, path_b],
+                frd_version="v1",
+                verbose=False,
+                save_features=False,
+                norm_ref="invalid_mode",
+            )
 
 
 # =============================================================================
@@ -822,174 +739,150 @@ class TestNewParams:
 
     # ── log_sigma ──
 
-    def test_log_sigma_custom(self):
+    def test_log_sigma_custom(self, tmp_path):
         """Custom log_sigma values should produce valid FRD."""
-        path_a, path_b = "tmp_logsigma_a", "tmp_logsigma_b"
+        path_a, path_b = str(tmp_path / "tmp_logsigma_a"), str(tmp_path / "tmp_logsigma_b")
         self._make_2d_images(path_a, path_b)
-        try:
-            frd_val = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-                log_sigma=[1.0, 2.0],
-            )
-            assert isinstance(frd_val, (float, np.floating))
-            print(f"FRD with log_sigma=[1,2]: {frd_val}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            log_sigma=[1.0, 2.0],
+        )
+        assert isinstance(frd_val, (float, np.floating))
+        print(f"FRD with log_sigma=[1,2]: {frd_val}")
 
     # ── bin_width ──
 
-    def test_bin_width(self):
+    def test_bin_width(self, tmp_path):
         """Custom bin_width should produce valid FRD."""
-        path_a, path_b = "tmp_binwidth_a", "tmp_binwidth_b"
+        path_a, path_b = str(tmp_path / "tmp_binwidth_a"), str(tmp_path / "tmp_binwidth_b")
         self._make_2d_images(path_a, path_b)
-        try:
-            frd_val = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-                bin_width=10,
-            )
-            assert isinstance(frd_val, (float, np.floating))
-            print(f"FRD with bin_width=10: {frd_val}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            bin_width=10,
+        )
+        assert isinstance(frd_val, (float, np.floating))
+        print(f"FRD with bin_width=10: {frd_val}")
 
     # ── normalize_scale / voxel_array_shift ──
 
-    def test_normalize_scale_and_voxel_array_shift(self):
+    def test_normalize_scale_and_voxel_array_shift(self, tmp_path):
         """Custom normalize_scale and voxel_array_shift should produce valid FRD."""
-        path_a, path_b = "tmp_normscale_a", "tmp_normscale_b"
+        path_a, path_b = str(tmp_path / "tmp_normscale_a"), str(tmp_path / "tmp_normscale_b")
         self._make_2d_images(path_a, path_b)
-        try:
-            frd_val = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-                normalize_scale=200.0,
-                voxel_array_shift=500.0,
-            )
-            assert isinstance(frd_val, (float, np.floating))
-            print(f"FRD with normalize_scale=200, voxel_array_shift=500: {frd_val}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            normalize_scale=200.0,
+            voxel_array_shift=500.0,
+        )
+        assert isinstance(frd_val, (float, np.floating))
+        print(f"FRD with normalize_scale=200, voxel_array_shift=500: {frd_val}")
 
     # ── resize_size as (w, h) tuple ──
 
-    def test_resize_size_tuple(self):
+    def test_resize_size_tuple(self, tmp_path):
         """resize_size as (w, h) tuple should work."""
-        path_a, path_b = "tmp_resize_tuple_a", "tmp_resize_tuple_b"
+        path_a, path_b = str(tmp_path / "tmp_resize_tuple_a"), str(tmp_path / "tmp_resize_tuple_b")
         self._make_2d_images(path_a, path_b, size=128)
-        try:
-            frd_val = frd.compute_frd(
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v0",
+            verbose=False,
+            save_features=False,
+            resize_size=(64, 64),
+        )
+        assert isinstance(frd_val, (float, np.floating))
+        print(f"FRD with resize_size=(64,64): {frd_val}")
+
+    # ── means_only ──
+
+    def test_means_only(self, tmp_path):
+        """means_only=True should produce a valid (different) FRD score."""
+        path_a, path_b = str(tmp_path / "tmp_means_a"), str(tmp_path / "tmp_means_b")
+        self._make_2d_images(path_a, path_b)
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            frd_full = frd.compute_frd(
                 [path_a, path_b],
                 frd_version="v0",
                 verbose=False,
                 save_features=False,
-                resize_size=(64, 64),
+                means_only=False,
             )
-            assert isinstance(frd_val, (float, np.floating))
-            print(f"FRD with resize_size=(64,64): {frd_val}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
-
-    # ── means_only ──
-
-    def test_means_only(self):
-        """means_only=True should produce a valid (different) FRD score."""
-        path_a, path_b = "tmp_means_a", "tmp_means_b"
-        self._make_2d_images(path_a, path_b)
-        try:
-            import warnings
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                frd_full = frd.compute_frd(
-                    [path_a, path_b],
-                    frd_version="v0",
-                    verbose=False,
-                    save_features=False,
-                    means_only=False,
-                )
-                frd_means = frd.compute_frd(
-                    [path_a, path_b],
-                    frd_version="v0",
-                    verbose=False,
-                    save_features=False,
-                    means_only=True,
-                )
-            assert isinstance(frd_means, (float, np.floating))
-            print(f"FRD full: {frd_full}, means_only: {frd_means}")
-            # means_only should generally give a smaller or equal value
-            assert frd_means <= frd_full + 1e-6, (
-                f"means_only should not exceed full FRD. Got means={frd_means}, full={frd_full}"
+            frd_means = frd.compute_frd(
+                [path_a, path_b],
+                frd_version="v0",
+                verbose=False,
+                save_features=False,
+                means_only=True,
             )
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        assert isinstance(frd_means, (float, np.floating))
+        print(f"FRD full: {frd_full}, means_only: {frd_means}")
+        # means_only should generally give a smaller or equal value
+        assert frd_means <= frd_full + 1e-6, (
+            f"means_only should not exceed full FRD. Got means={frd_means}, full={frd_full}"
+        )
 
     # ── exclude_features ──
 
-    def test_exclude_features(self):
+    def test_exclude_features(self, tmp_path):
         """Excluding feature categories should still produce valid results."""
-        path_a, path_b = "tmp_exclude_a", "tmp_exclude_b"
+        path_a, path_b = str(tmp_path / "tmp_exclude_a"), str(tmp_path / "tmp_exclude_b")
         self._make_2d_images(path_a, path_b)
-        try:
-            frd_val = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-                exclude_features=["textural"],
-            )
-            assert isinstance(frd_val, (float, np.floating))
-            print(f"FRD excluding textural features: {frd_val}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            exclude_features=["textural"],
+        )
+        assert isinstance(frd_val, (float, np.floating))
+        print(f"FRD excluding textural features: {frd_val}")
 
     # ── match_sample_count ──
 
-    def test_match_sample_count(self):
+    def test_match_sample_count(self, tmp_path):
         """match_sample_count should subsample larger set and produce valid FRD."""
-        path_a, path_b = "tmp_matchcount_a", "tmp_matchcount_b"
+        path_a, path_b = str(tmp_path / "tmp_matchcount_a"), str(tmp_path / "tmp_matchcount_b")
         self._make_2d_images(path_a, path_b, n=3)
         # Add extra images to path_b to make it larger
         for i in range(3, 6):
             arr = np.random.rand(64, 64) * 255
             Image.fromarray(arr.astype(np.uint8), mode="L").save(f"{path_b}/img{i}.png")
-        try:
-            frd_val = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v0",
-                verbose=False,
-                save_features=False,
-                match_sample_count=True,
-            )
-            assert isinstance(frd_val, (float, np.floating))
-            print(f"FRD with match_sample_count: {frd_val}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v0",
+            verbose=False,
+            save_features=False,
+            match_sample_count=True,
+        )
+        assert isinstance(frd_val, (float, np.floating))
+        print(f"FRD with match_sample_count: {frd_val}")
 
     # ── settings_dict ──
 
-    def test_settings_dict(self):
+    def test_settings_dict(self, tmp_path):
         """settings_dict should pass through to the extractor."""
-        path_a, path_b = "tmp_settingsdict_a", "tmp_settingsdict_b"
+        path_a, path_b = str(tmp_path / "tmp_settingsdict_a"), str(tmp_path / "tmp_settingsdict_b")
         self._make_2d_images(path_a, path_b)
-        try:
-            frd_val = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-                settings_dict={"binWidth": 10},
-            )
-            assert isinstance(frd_val, (float, np.floating))
-            print(f"FRD with settings_dict={{binWidth: 10}}: {frd_val}")
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            settings_dict={"binWidth": 10},
+        )
+        assert isinstance(frd_val, (float, np.floating))
+        print(f"FRD with settings_dict={{binWidth: 10}}: {frd_val}")
 
     # ── save_features default ──
 
@@ -1083,7 +976,7 @@ class TestMeansOnly:
 class TestInterpretFrd:
     """Tests for the interpret_frd function."""
 
-    def test_interpret_produces_output(self):
+    def test_interpret_produces_output(self, tmp_path):
         """interpret_frd should produce plots and return results dict."""
         try:
             import matplotlib
@@ -1094,44 +987,38 @@ class TestInterpretFrd:
         feats1 = np.random.rand(20, 10)
         feats2 = np.random.rand(20, 10) + 0.5
         names = [f"feature_{i}" for i in range(10)]
-        viz_dir = "tmp_interpret_output"
+        viz_dir = str(tmp_path / "tmp_interpret_output")
 
-        try:
-            results = frd.interpret_frd([feats1, feats2], names, viz_dir=viz_dir, run_tsne=False)
-            assert "top_changed_features" in results
-            assert "n_features" in results
-            assert results["n_features"] == 10
-            assert len(results["top_changed_features"]) <= 20
-            assert os.path.exists(os.path.join(viz_dir, "sorted_feature_differences.png"))
-        finally:
-            os.system(f"rm -rf {viz_dir}")
+        results = frd.interpret_frd([feats1, feats2], names, viz_dir=viz_dir, run_tsne=False)
+        assert "top_changed_features" in results
+        assert "n_features" in results
+        assert results["n_features"] == 10
+        assert len(results["top_changed_features"]) <= 20
+        assert os.path.exists(os.path.join(viz_dir, "sorted_feature_differences.png"))
 
 
 class TestDetectOod:
     """Tests for the detect_ood function."""
 
-    def test_image_level_ood(self):
+    def test_image_level_ood(self, tmp_path):
         """Image-level OOD detection should produce predictions."""
         ref = np.random.rand(50, 10)
         test = np.random.rand(20, 10) + 5.0  # shifted → should be OOD
-        output_dir = "tmp_ood_output"
+        output_dir = str(tmp_path / "tmp_ood_output")
 
-        try:
-            results = frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                val_frac=0.2,
-                output_dir=output_dir,
-            )
-            assert "threshold" in results
-            assert "scores" in results
-            assert "predictions" in results
-            assert len(results["predictions"]) == 20
-            assert os.path.exists(os.path.join(output_dir, "ood_predictions.csv"))
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        results = frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            val_frac=0.2,
+            output_dir=output_dir,
+        )
+        assert "threshold" in results
+        assert "scores" in results
+        assert "predictions" in results
+        assert len(results["predictions"]) == 20
+        assert os.path.exists(os.path.join(output_dir, "ood_predictions.csv"))
 
-    def test_dataset_level_ood(self):
+    def test_dataset_level_ood(self, tmp_path):
         """Dataset-level OOD detection should produce nFRD score."""
         try:
             from sklearn.metrics import roc_auc_score
@@ -1141,19 +1028,16 @@ class TestDetectOod:
 
         ref = np.random.rand(50, 10)
         test = np.random.rand(20, 10) + 5.0
-        output_dir = "tmp_ood_dataset"
+        output_dir = str(tmp_path / "tmp_ood_dataset")
 
-        try:
-            results = frd.detect_ood(
-                [ref, test],
-                detection_type="dataset",
-                output_dir=output_dir,
-            )
-            assert "nfrd" in results
-            assert 0 <= results["nfrd"] <= 1.0
-            print(f"nFRD: {results['nfrd']}")
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        results = frd.detect_ood(
+            [ref, test],
+            detection_type="dataset",
+            output_dir=output_dir,
+        )
+        assert "nfrd" in results
+        assert 0 <= results["nfrd"] <= 1.0
+        print(f"nFRD: {results['nfrd']}")
 
     def test_invalid_detection_type_raises(self):
         """Invalid detection_type should raise ValueError."""
@@ -1163,168 +1047,147 @@ class TestDetectOod:
         with pytest.raises(ValueError, match="detection_type must be"):
             frd.detect_ood([ref, test], detection_type="invalid")
 
-    def test_use_val_set_false(self):
+    def test_use_val_set_false(self, tmp_path):
         """When use_val_set=False, full reference set is used for threshold estimation."""
         np.random.seed(42)
         ref = np.random.rand(50, 10)
         test = np.random.rand(20, 10) + 5.0
-        output_dir = "tmp_ood_no_val"
+        output_dir = str(tmp_path / "tmp_ood_no_val")
 
-        try:
-            results = frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                use_val_set=False,
-                output_dir=output_dir,
-            )
-            assert "threshold" in results
-            assert "scores" in results
-            assert len(results["predictions"]) == 20
-            # Most shifted samples should be detected as OOD
-            assert results["predictions"].sum() > 10
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        results = frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            use_val_set=False,
+            output_dir=output_dir,
+        )
+        assert "threshold" in results
+        assert "scores" in results
+        assert len(results["predictions"]) == 20
+        # Most shifted samples should be detected as OOD
+        assert results["predictions"].sum() > 10
 
-    def test_use_val_set_true(self):
+    def test_use_val_set_true(self, tmp_path):
         """When use_val_set=True, a held-out split is used for threshold estimation."""
         np.random.seed(42)
         ref = np.random.rand(50, 10)
         test = np.random.rand(20, 10) + 5.0
-        output_dir = "tmp_ood_val"
+        output_dir = str(tmp_path / "tmp_ood_val")
 
-        try:
-            results = frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                use_val_set=True,
-                val_frac=0.2,
-                output_dir=output_dir,
-            )
-            assert "threshold" in results
-            assert len(results["predictions"]) == 20
-            assert results["predictions"].sum() > 10
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        results = frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            use_val_set=True,
+            val_frac=0.2,
+            output_dir=output_dir,
+        )
+        assert "threshold" in results
+        assert len(results["predictions"]) == 20
+        assert results["predictions"].sum() > 10
 
-    def test_seed_reproducibility(self):
+    def test_seed_reproducibility(self, tmp_path):
         """Setting a seed should produce reproducible results with use_val_set=True."""
         ref = np.random.rand(50, 10)
         test = np.random.rand(20, 10)
-        output_dir = "tmp_ood_seed"
+        output_dir = str(tmp_path / "tmp_ood_seed")
 
-        try:
-            r1 = frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                use_val_set=True,
-                seed=1338,
-                output_dir=output_dir,
-            )
-            r2 = frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                use_val_set=True,
-                seed=1338,
-                output_dir=output_dir,
-            )
-            np.testing.assert_array_equal(r1["scores"], r2["scores"])
-            np.testing.assert_array_equal(r1["predictions"], r2["predictions"])
-            assert r1["threshold"] == r2["threshold"]
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        r1 = frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            use_val_set=True,
+            seed=1338,
+            output_dir=output_dir,
+        )
+        r2 = frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            use_val_set=True,
+            seed=1338,
+            output_dir=output_dir,
+        )
+        np.testing.assert_array_equal(r1["scores"], r2["scores"])
+        np.testing.assert_array_equal(r1["predictions"], r2["predictions"])
+        assert r1["threshold"] == r2["threshold"]
 
-    def test_filenames_in_csv(self):
+    def test_filenames_in_csv(self, tmp_path):
         """Filenames should appear in CSV output when provided."""
         ref = np.random.rand(30, 10)
         test = np.random.rand(5, 10)
         filenames = ["img_001.png", "img_002.png", "img_003.png", "img_004.png", "img_005.png"]
-        output_dir = "tmp_ood_filenames"
+        output_dir = str(tmp_path / "tmp_ood_filenames")
 
-        try:
-            frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                use_val_set=False,
-                filenames=filenames,
-                output_dir=output_dir,
-            )
-            csv_path = os.path.join(output_dir, "ood_predictions.csv")
-            assert os.path.exists(csv_path)
-            import csv as csv_mod
-            with open(csv_path, "r") as f:
-                reader = csv_mod.reader(f)
-                header = next(reader)
-                assert header[0] == "filename"
-                rows = list(reader)
-                assert len(rows) == 5
-                assert rows[0][0] == "img_001.png"
-                assert rows[4][0] == "img_005.png"
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            use_val_set=False,
+            filenames=filenames,
+            output_dir=output_dir,
+        )
+        csv_path = os.path.join(output_dir, "ood_predictions.csv")
+        assert os.path.exists(csv_path)
+        import csv as csv_mod
+        with open(csv_path, "r") as f:
+            reader = csv_mod.reader(f)
+            header = next(reader)
+            assert header[0] == "filename"
+            rows = list(reader)
+            assert len(rows) == 5
+            assert rows[0][0] == "img_001.png"
+            assert rows[4][0] == "img_005.png"
 
-    def test_no_filenames_uses_index(self):
+    def test_no_filenames_uses_index(self, tmp_path):
         """Without filenames, CSV should use numeric indices."""
         ref = np.random.rand(30, 10)
         test = np.random.rand(5, 10)
-        output_dir = "tmp_ood_nonames"
+        output_dir = str(tmp_path / "tmp_ood_nonames")
 
-        try:
-            frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                use_val_set=False,
-                output_dir=output_dir,
-            )
-            csv_path = os.path.join(output_dir, "ood_predictions.csv")
-            import csv as csv_mod
-            with open(csv_path, "r") as f:
-                reader = csv_mod.reader(f)
-                header = next(reader)
-                assert header[0] == "index"
-                rows = list(reader)
-                assert rows[0][0] == "0"
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            use_val_set=False,
+            output_dir=output_dir,
+        )
+        csv_path = os.path.join(output_dir, "ood_predictions.csv")
+        import csv as csv_mod
+        with open(csv_path, "r") as f:
+            reader = csv_mod.reader(f)
+            header = next(reader)
+            assert header[0] == "index"
+            rows = list(reader)
+            assert rows[0][0] == "0"
 
-    def test_counting_assumption(self):
+    def test_counting_assumption(self, tmp_path):
         """Counting distribution assumption should produce valid results."""
         ref = np.random.rand(50, 10)
         test = np.random.rand(20, 10) + 5.0
-        output_dir = "tmp_ood_counting"
+        output_dir = str(tmp_path / "tmp_ood_counting")
 
-        try:
-            results = frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                id_dist_assumption="counting",
-                use_val_set=False,
-                output_dir=output_dir,
-            )
-            assert "threshold" in results
-            assert "p_values" in results
-            assert all(0 <= p <= 1 for p in results["p_values"])
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        results = frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            id_dist_assumption="counting",
+            use_val_set=False,
+            output_dir=output_dir,
+        )
+        assert "threshold" in results
+        assert "p_values" in results
+        assert all(0 <= p <= 1 for p in results["p_values"])
 
-    def test_t_assumption(self):
+    def test_t_assumption(self, tmp_path):
         """T-distribution assumption should produce valid results."""
         ref = np.random.rand(50, 10)
         test = np.random.rand(20, 10) + 5.0
-        output_dir = "tmp_ood_t"
+        output_dir = str(tmp_path / "tmp_ood_t")
 
-        try:
-            results = frd.detect_ood(
-                [ref, test],
-                detection_type="image",
-                id_dist_assumption="t",
-                use_val_set=False,
-                output_dir=output_dir,
-            )
-            assert "threshold" in results
-            assert "p_values" in results
-            assert all(0 <= p <= 1 for p in results["p_values"])
-        finally:
-            os.system(f"rm -rf {output_dir}")
+        results = frd.detect_ood(
+            [ref, test],
+            detection_type="image",
+            id_dist_assumption="t",
+            use_val_set=False,
+            output_dir=output_dir,
+        )
+        assert "threshold" in results
+        assert "p_values" in results
+        assert all(0 <= p <= 1 for p in results["p_values"])
 
 
 class TestConstants:
@@ -1373,53 +1236,50 @@ class TestEquivalenceV0:
             arr = rng.rand(size, size) * 255
             Image.fromarray(arr.astype(np.uint8), mode="L").save(f"{out_dir}/img_{i:03d}.png")
 
-    def test_merged_v0_equals_original_v0(self):
+    def test_merged_v0_equals_original_v0(self, tmp_path):
         """Core equivalence test: merged v0 must match original v0 exactly."""
         from frd_v0.src.frd_score import frd as frd_v0_original
 
-        path_a = "tmp_equiv_v0_a"
-        path_b = "tmp_equiv_v0_b"
+        path_a = str(tmp_path / "tmp_equiv_v0_a")
+        path_b = str(tmp_path / "tmp_equiv_v0_b")
 
         # Generate identical synthetic images using fixed seeds
         self._make_synthetic_distribution(path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42)
         self._make_synthetic_distribution(path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123)
 
-        try:
-            # Run original v0
-            frd_original = frd_v0_original.compute_frd(
-                [path_a, path_b],
-                verbose=False,
-                save_features=False,
-                # Use all original v0 defaults:
-                # features=[firstorder, glcm, glrlm, gldm, glszm, ngtdm, shape, shape2D]
-                # norm_type="minmax"
-                # norm_range=[0.0, 7.45670747756958]
-                # norm_sets_separately=True  (= joint normalization)
-            )
+        # Run original v0
+        frd_original = frd_v0_original.compute_frd(
+            [path_a, path_b],
+            verbose=False,
+            save_features=False,
+            # Use all original v0 defaults:
+            # features=[firstorder, glcm, glrlm, gldm, glszm, ngtdm, shape, shape2D]
+            # norm_type="minmax"
+            # norm_range=[0.0, 7.45670747756958]
+            # norm_sets_separately=True  (= joint normalization)
+        )
 
-            # Run merged in v0 mode
-            frd_merged = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v0",
-                verbose=False,
-                save_features=False,
-                # All defaults should match original v0:
-                # features=V0_DEFAULT_FEATURES (same 8 classes)
-                # norm_type=V0_DEFAULT_NORM_TYPE ("minmax")
-                # norm_range=V0_DEFAULT_NORM_RANGE ([0.0, 7.4567...])
-                # norm_ref=V0_DEFAULT_NORM_REF ("joint")
-            )
+        # Run merged in v0 mode
+        frd_merged = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v0",
+            verbose=False,
+            save_features=False,
+            # All defaults should match original v0:
+            # features=V0_DEFAULT_FEATURES (same 8 classes)
+            # norm_type=V0_DEFAULT_NORM_TYPE ("minmax")
+            # norm_range=V0_DEFAULT_NORM_RANGE ([0.0, 7.4567...])
+            # norm_ref=V0_DEFAULT_NORM_REF ("joint")
+        )
 
-            print(f"Original v0 FRD: {frd_original}")
-            print(f"Merged v0 FRD:   {frd_merged}")
-            print(f"Difference:      {abs(frd_original - frd_merged)}")
+        print(f"Original v0 FRD: {frd_original}")
+        print(f"Merged v0 FRD:   {frd_merged}")
+        print(f"Difference:      {abs(frd_original - frd_merged)}")
 
-            assert np.isclose(frd_original, frd_merged, rtol=1e-10), (
-                f"EQUIVALENCE FAILURE: Original v0 ({frd_original}) != Merged v0 ({frd_merged}). "
-                f"Difference = {abs(frd_original - frd_merged)}"
-            )
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        assert np.isclose(frd_original, frd_merged, rtol=1e-10), (
+            f"EQUIVALENCE FAILURE: Original v0 ({frd_original}) != Merged v0 ({frd_merged}). "
+            f"Difference = {abs(frd_original - frd_merged)}"
+        )
 
     def test_merged_v0_defaults_match_original(self):
         """Verify that merged v0 defaults (norm_type, norm_range, norm_ref, features)
@@ -1510,28 +1370,25 @@ class TestEquivalenceV1:
         assert norm_range == [0.0, 1.0], f"Expected [0.0, 1.0], got {norm_range}"
         print(f"v1 defaults: norm_type={norm_type}, norm_ref={norm_ref}, norm_range={norm_range}")
 
-    def test_merged_v1_produces_valid_frd(self):
+    def test_merged_v1_produces_valid_frd(self, tmp_path):
         """Merged v1 with defaults should produce a valid log-transformed FRD."""
-        path_a = "tmp_equiv_v1_valid_a"
-        path_b = "tmp_equiv_v1_valid_b"
+        path_a = str(tmp_path / "tmp_equiv_v1_valid_a")
+        path_b = str(tmp_path / "tmp_equiv_v1_valid_b")
         self._make_synthetic_distribution(path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42)
         self._make_synthetic_distribution(path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123)
 
-        try:
-            frd_val = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-            )
-            print(f"Merged v1 FRD (D1-ref default): {frd_val}")
-            assert isinstance(frd_val, (float, np.floating))
-            # v1 produces log-transformed values; should be a real number
-            assert np.isfinite(frd_val), f"Expected finite FRD, got {frd_val}"
-        finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+        frd_val = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+        )
+        print(f"Merged v1 FRD (D1-ref default): {frd_val}")
+        assert isinstance(frd_val, (float, np.floating))
+        # v1 produces log-transformed values; should be a real number
+        assert np.isfinite(frd_val), f"Expected finite FRD, got {frd_val}"
 
-    def test_merged_v1_equivalence_with_original_v1(self):
+    def test_merged_v1_equivalence_with_original_v1(self, tmp_path):
         """End-to-end equivalence test: run original v1 pipeline and merged v1, compare.
 
         Both produce the same FRD value on identical single-channel grayscale images.
@@ -1562,55 +1419,52 @@ class TestEquivalenceV1:
             sys.path.pop(0)
 
         # Use absolute paths so they work regardless of CWD
-        path_a = os.path.abspath("tmp_equiv_v1_e2e_a")
-        path_b = os.path.abspath("tmp_equiv_v1_e2e_b")
+        path_a = str(tmp_path / "tmp_equiv_v1_e2e_a")
+        path_b = str(tmp_path / "tmp_equiv_v1_e2e_b")
         self._make_synthetic_distribution(path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42)
         self._make_synthetic_distribution(path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123)
 
+        # ── Run original v1 pipeline ──
+        # The original v1 uses a relative YAML path (configs/2D_extraction.yaml),
+        # so we must cd into the frd_v1 directory for it to resolve correctly.
+        original_cwd = os.getcwd()
+        frd_v1_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'frd_v1')
+        os.chdir(frd_v1_dir)
         try:
-            # ── Run original v1 pipeline ──
-            # The original v1 uses a relative YAML path (configs/2D_extraction.yaml),
-            # so we must cd into the frd_v1 directory for it to resolve correctly.
-            original_cwd = os.getcwd()
-            frd_v1_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'frd_v1')
-            os.chdir(frd_v1_dir)
-            try:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    compute_and_save_imagefolder_radiomics_parallel(path_a, radiomics_fname='radiomics.csv')
-                    compute_and_save_imagefolder_radiomics_parallel(path_b, radiomics_fname='radiomics.csv')
-            finally:
-                os.chdir(original_cwd)
-
-            radiomics_df1 = pd.read_csv(os.path.join(path_a, 'radiomics.csv'))
-            radiomics_df2 = pd.read_csv(os.path.join(path_b, 'radiomics.csv'))
-
-            feats1, feats2 = convert_radiomic_dfs_to_vectors(
-                radiomics_df1, radiomics_df2, match_sample_count=True, normalize=True,
-            )
-            fd = v1_frechet_distance(feats1, feats2)
-            frd_original_v1 = np.log(fd)
-
-            # ── Run merged v1 pipeline ──
-            frd_merged_v1 = frd.compute_frd(
-                [path_a, path_b],
-                frd_version="v1",
-                verbose=False,
-                save_features=False,
-            )
-
-            print(f"Original v1 FRD: {frd_original_v1}")
-            print(f"Merged v1 FRD:   {frd_merged_v1}")
-            print(f"Difference:      {abs(frd_original_v1 - frd_merged_v1):.2e}")
-
-            # The tolerance is 1e-6 (float32 machine epsilon is ~1.2e-7).
-            # Observed differences are typically ~2e-8, well within this bound.
-            assert np.isclose(frd_original_v1, frd_merged_v1, rtol=1e-6), (
-                f"EQUIVALENCE FAILURE: Original v1 ({frd_original_v1}) != Merged v1 ({frd_merged_v1}). "
-                f"Difference = {abs(frd_original_v1 - frd_merged_v1):.2e}"
-            )
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                compute_and_save_imagefolder_radiomics_parallel(path_a, radiomics_fname='radiomics.csv')
+                compute_and_save_imagefolder_radiomics_parallel(path_b, radiomics_fname='radiomics.csv')
         finally:
-            os.system(f"rm -rf {path_a} {path_b}")
+            os.chdir(original_cwd)
+
+        radiomics_df1 = pd.read_csv(os.path.join(path_a, 'radiomics.csv'))
+        radiomics_df2 = pd.read_csv(os.path.join(path_b, 'radiomics.csv'))
+
+        feats1, feats2 = convert_radiomic_dfs_to_vectors(
+            radiomics_df1, radiomics_df2, match_sample_count=True, normalize=True,
+        )
+        fd = v1_frechet_distance(feats1, feats2)
+        frd_original_v1 = np.log(fd)
+
+        # ── Run merged v1 pipeline ──
+        frd_merged_v1 = frd.compute_frd(
+            [path_a, path_b],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+        )
+
+        print(f"Original v1 FRD: {frd_original_v1}")
+        print(f"Merged v1 FRD:   {frd_merged_v1}")
+        print(f"Difference:      {abs(frd_original_v1 - frd_merged_v1):.2e}")
+
+        # The tolerance is 1e-6 (float32 machine epsilon is ~1.2e-7).
+        # Observed differences are typically ~2e-8, well within this bound.
+        assert np.isclose(frd_original_v1, frd_merged_v1, rtol=1e-6), (
+            f"EQUIVALENCE FAILURE: Original v1 ({frd_original_v1}) != Merged v1 ({frd_merged_v1}). "
+            f"Difference = {abs(frd_original_v1 - frd_merged_v1):.2e}"
+        )
 
     def test_v0_norm_ref_default_is_joint(self):
         """v0 default norm_ref should be 'joint' (matching original v0 behavior)."""

@@ -1,7 +1,16 @@
+<!---[![PyPI](https://img.shields.io/pypi/v/frd-score.svg)](https://pypi.org/project/frd-score/)--->
+## NEWS 1/9/26: 🎉 the FRD paper has been accepted to [Medical Image Analysis](https://www.sciencedirect.com/science/article/pii/S1361841526000125) 🎉!
+
+# FRD (Fréchet Radiomic Distance): A Metric Designed for Medical Image Distribution Comparison in the Age of Deep Learning
+
+#### By [Nicholas Konz*](https://nickk124.github.io/), [Richard Osuala*](https://scholar.google.com/citations?user=0KkVRVQAAAAJ&hl=en), (* = equal contribution), [Preeti Verma](https://scholar.google.com/citations?user=6WN41lwAAAAJ&hl=en), [Yuwen Chen](https://scholar.google.com/citations?user=61s49p0AAAAJ&hl=en), [Hanxue Gu](https://scholar.google.com/citations?user=aGjCpQUAAAAJ&hl=en), [Haoyu Dong](https://haoyudong-97.github.io/), [Yaqian Chen](https://scholar.google.com/citations?user=iegKFuQAAAAJ&hl=en), [Andrew Marshall](https://linkedin.com/in/andrewmarshall26), [Lidia Garrucho](https://github.com/LidiaGarrucho), [Kaisar Kushibar](https://scholar.google.es/citations?user=VeHqMi4AAAAJ&hl=en), [Daniel M. Lang](https://scholar.google.com/citations?user=AV04Hs4AAAAJ&hl=en), [Gene S. Kim](https://vivo.weill.cornell.edu/display/cwid-sgk4001), [Lars J. Grimm](https://scholars.duke.edu/person/lars.grimm), [John M. Lewin](https://medicine.yale.edu/profile/john-lewin/), [James S. Duncan](https://medicine.yale.edu/profile/james-duncan/), [Julia A. Schnabel](https://compai-lab.github.io/), [Oliver Diaz](https://sites.google.com/site/odiazmontesdeoca/home), [Karim Lekadir](https://www.bcn-aim.org/) and [Maciej A. Mazurowski](https://sites.duke.edu/mazurowski/).
+
+
 [![PyPI](https://img.shields.io/pypi/v/frd-score.svg)](https://pypi.org/project/frd-score/)
+[![Conda](https://img.shields.io/conda/vn/conda-forge/frd-score.svg)](https://anaconda.org/conda-forge/frd-score)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
-[![Tests](https://github.com/RichardObi/frd-score/actions/workflows/ci.yml/badge.svg)](https://github.com/RichardObi/frd-score/actions/workflows/ci.yml)
+[![Tests](https://github.com/RichardObi/frd-score/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/RichardObi/frd-score/actions/workflows/ci.yml)
 [![arXiv](https://img.shields.io/badge/arXiv-2412.01496-b31b1b.svg)](https://arxiv.org/abs/2412.01496)
 [![Website](https://img.shields.io/badge/Project-Website-blue)](https://richardobi.github.io/frd/)
 
@@ -53,6 +62,14 @@ pip install frd-score
 ```bash
 pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master
 ```
+
+### From Conda (conda-forge)
+
+```bash
+conda install -c conda-forge frd-score
+```
+
+The conda-forge package includes all dependencies (including pyradiomics), so no additional installation steps are needed.
 
 ### From source
 
