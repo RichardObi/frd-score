@@ -1,39 +1,14 @@
 # API Reference
 
-## Core functions
+## Core Functions
 
 ### `compute_frd`
 
-```python
-frd_score.compute_frd(
-    paths,
-    frd_version="v1",
-    features=None,
-    norm_type=None,
-    norm_range=None,
-    paths_masks=None,
-    resize_size=None,
-    verbose=False,
-    save_features=False,
-    norm_ref=None,
-    num_workers=None,
-    image_types=None,
-    use_paper_log=False,
-    log_sigma=None,
-    config_path=None,
-    bin_width=None,
-    normalize_scale=None,
-    voxel_array_shift=None,
-    exclude_features=None,
-    match_sample_count=False,
-    means_only=False,
-    settings_dict=None,
-    interpret=False,
-    interpret_dir="outputs/interpretability_visualizations",
-)
-```
-
-Compute the Fréchet Radiomics Distance between two image distributions. This is the main entry point.
+::: frd_score.compute_frd
+    options:
+      show_root_heading: false
+      show_source: false
+      heading_level: 4
 
 **Parameters:**
 
@@ -57,7 +32,7 @@ Compute the Fréchet Radiomics Distance between two image distributions. This is
 | `bin_width` | `int` \| `None` | PyRadiomics bin width |
 | `normalize_scale` | `float` \| `None` | PyRadiomics normalise scale |
 | `voxel_array_shift` | `float` \| `None` | PyRadiomics voxel array shift |
-| `exclude_features` | `list[str]` \| `None` | Post-extraction exclusion: `"textural"`, `"wavelet"`, `"firstorder"` |
+| `exclude_features` | `list[str]` \| `None` | Post-extraction exclusion: `"textural"`, `"wavelet"`, `"firstorder"`, `"shape"` |
 | `match_sample_count` | `bool` | Subsample larger set to match smaller |
 | `means_only` | `bool` | Skip covariance (mean-only distance) |
 | `settings_dict` | `dict` \| `None` | Arbitrary PyRadiomics settings |
@@ -70,15 +45,11 @@ Compute the Fréchet Radiomics Distance between two image distributions. This is
 
 ### `save_frd_stats`
 
-```python
-frd_score.save_frd_stats(
-    paths,
-    frd_version="v1",
-    # ... same parameters as compute_frd (except interpret/means_only)
-)
-```
-
-Compute and save feature statistics (mean, covariance) for a single distribution to a `.npz` file.
+::: frd_score.save_frd_stats
+    options:
+      show_root_heading: false
+      show_source: false
+      heading_level: 4
 
 **Parameters:** Same as `compute_frd()`, except `paths[0]` is the input directory and `paths[1]` is the output `.npz` file path.
 
@@ -86,16 +57,11 @@ Compute and save feature statistics (mean, covariance) for a single distribution
 
 ### `interpret_frd`
 
-```python
-frd_score.interpret_frd(
-    feature_list,
-    feature_names,
-    viz_dir="outputs/interpretability_visualizations",
-    run_tsne=True,
-)
-```
-
-Run interpretability analysis on extracted radiomic features.
+::: frd_score.interpret_frd
+    options:
+      show_root_heading: false
+      show_source: false
+      heading_level: 4
 
 **Parameters:**
 
@@ -112,20 +78,11 @@ Run interpretability analysis on extracted radiomic features.
 
 ### `detect_ood`
 
-```python
-frd_score.detect_ood(
-    feature_list,
-    detection_type="image",
-    val_frac=0.1,
-    use_val_set=False,
-    id_dist_assumption="gaussian",
-    output_dir="outputs/ood_predictions",
-    seed=None,
-    filenames=None,
-)
-```
-
-Out-of-distribution detection using normalised radiomics features.
+::: frd_score.detect_ood
+    options:
+      show_root_heading: false
+      show_source: false
+      heading_level: 4
 
 **Parameters:**
 
@@ -147,25 +104,48 @@ Out-of-distribution detection using normalised radiomics features.
 
 ---
 
+### `calculate_frechet_distance`
+
+::: frd_score.frd.calculate_frechet_distance
+    options:
+      show_root_heading: false
+      show_source: false
+      heading_level: 4
+
+---
+
 ## Constants
+
+### Quick import reference
 
 ```python
 from frd_score import (
+    # Core API
+    compute_frd,
+    save_frd_stats,
+    interpret_frd,
+    detect_ood,
+    # Version constants
     FRD_VERSION_V0,           # "v0"
     FRD_VERSION_V1,           # "v1"
     FRD_VERSION_DEFAULT,      # "v1"
+    # Image type defaults
     V0_DEFAULT_IMAGE_TYPES,   # ["Original"]
     V1_DEFAULT_IMAGE_TYPES,   # ["Original", "LoG", "Wavelet"]
+    # Normalisation reference modes
     NORM_REF_JOINT,           # "joint"
     NORM_REF_D1,              # "d1"
     NORM_REF_INDEPENDENT,     # "independent"
     NORM_REF_DEFAULT,         # None (resolved per-version)
     V0_DEFAULT_NORM_REF,      # "joint"
     V1_DEFAULT_NORM_REF,      # "d1"
+    # Feature exclusion
     EXCLUDE_TEXTURAL,         # "textural"
     EXCLUDE_WAVELET,          # "wavelet"
     EXCLUDE_FIRSTORDER,       # "firstorder"
-    EXCLUDE_OPTIONS,          # {"textural", "wavelet", "firstorder"}
+    EXCLUDE_SHAPE,            # "shape"
+    EXCLUDE_OPTIONS,          # {"textural", "wavelet", "firstorder", "shape"}
+    # PyRadiomics defaults
     DEFAULT_BIN_WIDTH,        # 5
     DEFAULT_NORMALIZE_SCALE,  # 100
     DEFAULT_VOXEL_ARRAY_SHIFT,# 300

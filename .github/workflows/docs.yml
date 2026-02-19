@@ -24,8 +24,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install MkDocs
-        run: pip install mkdocs-material
+      - name: Install MkDocs and dependencies
+        run: |
+          pip install mkdocs-material "mkdocstrings[python]>=0.25.0" mike
+          pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master
+          pip install -e .
 
       - name: Build docs
         run: mkdocs build --strict

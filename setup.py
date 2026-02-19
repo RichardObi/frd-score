@@ -91,6 +91,8 @@ if __name__ == "__main__":
             ],
             "docs": [
                 "mkdocs-material>=9.0",
+                "mkdocstrings[python]>=0.25.0",
+                "mike>=2.0",
             ],
         },
     )

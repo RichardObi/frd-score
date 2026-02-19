@@ -6,7 +6,16 @@
 pip install frd-score
 ```
 
-### Pyradiomics dependency
+## From conda-forge
+
+```bash
+conda install -c conda-forge frd-score
+```
+
+!!! note
+    The conda-forge package includes pyradiomics as a dependency, so no separate install step is needed.
+
+### Pyradiomics dependency (pip only)
 
 `frd-score` depends on [pyradiomics](https://github.com/AIM-Harvard/pyradiomics) for radiomic feature extraction. The PyPI release of pyradiomics is **broken for Python ≥ 3.10** ([#903](https://github.com/AIM-Harvard/pyradiomics/issues/903)), so it must be installed from GitHub:
 
@@ -26,7 +35,7 @@ pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master
 pip install -e ".[dev]"
 ```
 
-This installs the development extras: `pytest`, `nox`, `black`, `isort`, `flake8`, and `nibabel`.
+This installs the development extras: `pytest`, `black`, `isort`, `flake8`, and `nibabel`.
 
 ## Requirements
 
@@ -63,6 +72,11 @@ pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master
 No special steps needed. The standard install works on both Intel and Apple Silicon Macs.
 
 ## Verifying the installation
+
+```bash
+# Check the version
+python -m frd_score --version
+```
 
 ```python
 import frd_score

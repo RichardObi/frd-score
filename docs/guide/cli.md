@@ -4,6 +4,7 @@
 
 ```
 python -m frd_score <path1> <path2> [OPTIONS]
+python -m frd_score --version
 ```
 
 `path1` and `path2` can be:
@@ -11,6 +12,12 @@ python -m frd_score <path1> <path2> [OPTIONS]
 - Directories containing images (PNG, JPG, TIFF, BMP, NIfTI)
 - Paths to `.npz` statistics files (created with `--save_stats`)
 - Mixed: one `.npz` and one directory
+
+### General flags
+
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--version` | flag | — | Print the installed frd-score version and exit |
 
 ### Extraction & normalisation flags
 
@@ -33,7 +40,7 @@ These flags are shared between the main command and the `ood` subcommand.
 | `--normalize_scale` | float | `100` | PyRadiomics normalise scale |
 | `--voxel_array_shift` | float | `300` | PyRadiomics voxel array shift |
 | `--config_path` | path | — | Custom PyRadiomics YAML config (overrides above) |
-| `--exclude_features` | str... | — | Post-extraction exclusion: `textural`, `wavelet`, `firstorder` |
+| `--exclude_features` | str... | — | Post-extraction exclusion: `textural`, `wavelet`, `firstorder`, `shape` |
 | `--match_sample_count` | flag | off | Subsample larger dataset to match smaller |
 
 ### FRD-specific flags
@@ -88,6 +95,9 @@ python -m frd_score data/real data/synthetic \
 # Save and reuse statistics
 python -m frd_score --save_stats data/reference ref_stats.npz
 python -m frd_score ref_stats.npz data/generated
+
+# Exclude shape features (often constant without masks)
+python -m frd_score data/real data/synthetic --exclude_features shape
 
 # OOD detection
 python -m frd_score ood data/in_domain data/test_images \

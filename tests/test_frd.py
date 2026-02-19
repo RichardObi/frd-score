@@ -926,6 +926,25 @@ class TestExcludeFeatures:
         filtered, fnames = frd._apply_exclude_features(arrs, names, ["firstorder"])
         assert all("firstorder" not in n for n in fnames)
 
+    def test_exclude_shape(self):
+        names = ["firstorder_Mean", "shape_Elongation", "shape2D_Perimeter", "glcm_Contrast"]
+        arrs = [np.random.rand(5, len(names))]
+        filtered, fnames = frd._apply_exclude_features(arrs, names, ["shape"])
+        assert "shape_Elongation" not in fnames
+        assert "shape2D_Perimeter" not in fnames
+        assert "firstorder_Mean" in fnames
+        assert "glcm_Contrast" in fnames
+        assert len(fnames) == 2
+
+    def test_exclude_shape_wavelet_prefix(self):
+        """Shape features behind wavelet prefix should also be caught."""
+        names = ["wavelet-LLH_shape_Elongation", "shape_MeshVolume", "firstorder_Mean"]
+        arrs = [np.random.rand(5, len(names))]
+        filtered, fnames = frd._apply_exclude_features(arrs, names, ["shape"])
+        assert "shape_MeshVolume" not in fnames
+        assert "wavelet-LLH_shape_Elongation" not in fnames
+        assert "firstorder_Mean" in fnames
+
     def test_exclude_none(self):
         names = ["a", "b", "c"]
         arrs = [np.random.rand(3, 3)]
@@ -1197,7 +1216,8 @@ class TestConstants:
         assert frd.EXCLUDE_TEXTURAL == "textural"
         assert frd.EXCLUDE_WAVELET == "wavelet"
         assert frd.EXCLUDE_FIRSTORDER == "firstorder"
-        assert frd.EXCLUDE_OPTIONS == {"textural", "wavelet", "firstorder"}
+        assert frd.EXCLUDE_SHAPE == "shape"
+        assert frd.EXCLUDE_OPTIONS == {"textural", "wavelet", "firstorder", "shape"}
 
     def test_default_settings(self):
         assert frd.DEFAULT_BIN_WIDTH == 5

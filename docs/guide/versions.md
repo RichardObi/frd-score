@@ -52,6 +52,12 @@ frd_value = compute_frd(paths, use_paper_log=True)
 - Use **v1** (default) for new experiments. It is more robust and produces better-calibrated scores.
 - Use **v0** if you need backward compatibility with prior FRDv0 measurements.
 
+!!! tip "Shape features in v0"
+    FRDv0 includes `shape` and `shape2D` feature classes by default. When no mask is provided, these features are often constant across images (identical bounding-box geometry). Consider using `exclude_features=["shape"]` to remove them:
+    ```python
+    frd_value = compute_frd(paths, frd_version="v0", exclude_features=["shape"])
+    ```
+
 ## Version-specific defaults
 
 All version-specific defaults are resolved automatically, but can be overridden:

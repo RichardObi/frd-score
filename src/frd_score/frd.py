@@ -137,7 +137,8 @@ DEFAULT_VOXEL_ARRAY_SHIFT = 300
 EXCLUDE_TEXTURAL = "textural"
 EXCLUDE_WAVELET = "wavelet"
 EXCLUDE_FIRSTORDER = "firstorder"
-EXCLUDE_OPTIONS = {EXCLUDE_TEXTURAL, EXCLUDE_WAVELET, EXCLUDE_FIRSTORDER}
+EXCLUDE_SHAPE = "shape"
+EXCLUDE_OPTIONS = {EXCLUDE_TEXTURAL, EXCLUDE_WAVELET, EXCLUDE_FIRSTORDER, EXCLUDE_SHAPE}
 
 # ─── Normalization reference mode ──────────────────────────────────────────────
 # Controls which distribution's statistics are used as the normalization base.
@@ -313,7 +314,8 @@ def _add_shared_extraction_args(parser):
         choices=sorted(EXCLUDE_OPTIONS),
         help="Post-extraction feature exclusion for ablation studies. "
         "Removes features matching the specified category *after* extraction. "
-        "Options: 'textural' (glcm/glrlm/glszm/ngtdm/gldm), 'wavelet', 'firstorder'.",
+        "Options: 'textural' (glcm/glrlm/glszm/ngtdm/gldm), 'wavelet', 'firstorder', "
+        "'shape' (shape/shape2D — often constant when no mask is used).",
     )
 
     parser.add_argument(
@@ -1162,6 +1164,17 @@ def _apply_exclude_features(feature_arrays, feature_names, exclude_features):
             for idx, name in enumerate(feature_names):
                 if "firstorder" in name:
                     keep_mask[idx] = False
+        elif excl == EXCLUDE_SHAPE:
+            # Shape features: shape_* and shape2D_* (often constant without masks)
+            # Also catches wavelet-prefixed variants like wavelet-LLH_shape_*
+            for idx, name in enumerate(feature_names):
+                parts = name.split("_")
+                if len(parts) >= 2:
+                    for p in parts[:-1]:
+                        clean = p.split("-")[-1] if "-" in p else p
+                        if clean == "shape" or clean == "shape2D":
+                            keep_mask[idx] = False
+                            break
 
     filtered_names = [n for n, k in zip(feature_names, keep_mask) if k]
     filtered_arrays = [arr[:, keep_mask] for arr in feature_arrays]

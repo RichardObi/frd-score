@@ -27,6 +27,9 @@ theme:
     - navigation.tabs
     - navigation.sections
     - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - navigation.path
     - content.code.copy
     - content.code.annotate
     - search.highlight
@@ -45,11 +48,24 @@ nav:
       - Interpretability: guide/interpretability.md
       - OOD Detection: guide/ood.md
   - API Reference: api.md
+  - FAQ: faq.md
   - Contributing: contributing.md
   - Changelog: changelog.md
 
 plugins:
-  - search
+  - search:
+      separator: '[\\s\\-\\._]+'
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: numpy
+            show_signature_annotations: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
 
 markdown_extensions:
   - admonition
@@ -57,6 +73,8 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight:
       anchor_linenums: true
+      auto_title: true
+      line_spans: __span
   - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
@@ -68,6 +86,9 @@ markdown_extensions:
   - md_in_html
 
 extra:
+  version:
+    provider: mike
+    default: latest
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/RichardObi/frd-score

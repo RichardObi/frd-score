@@ -16,7 +16,7 @@
 
 # Fréchet Radiomics Distance (FRD)
 
-**[Project Website](https://richardobi.github.io/frd/)** · **[Paper (Medical Image Analysis)](https://www.sciencedirect.com/science/article/pii/S1361841526000125)** · **[arXiv](https://arxiv.org/abs/2412.01496)** · **[Evaluation Framework](https://github.com/mazurowski-lab/medical-image-similarity-metrics)**
+**[Project Website](https://richardobi.github.io/frd/)** · **[Paper (Medical Image Analysis)](https://www.sciencedirect.com/science/article/pii/S1361841526000125)** · **[arXiv](https://arxiv.org/abs/2412.01496)** · **[Evaluation Framework](https://github.com/mazurowski-lab/medical-image-similarity-metrics)** · **[Documentation](https://richardobi.github.io/frd-score/)** · **[API](https://richardobi.github.io/frd-score/api/)**
 
 
 <p align="center">
@@ -167,7 +167,7 @@ python -m frd_score path1 path2 [OPTIONS]
 | `--normalize_scale` | PyRadiomics normalize scale | `100` |
 | `--voxel_array_shift` | PyRadiomics voxel array shift | `300` |
 | `--config_path` | Custom PyRadiomics YAML config | None |
-| `--exclude_features` | Post-extraction exclusion: `textural`, `wavelet`, `firstorder` | None |
+| `--exclude_features` | Post-extraction exclusion: `textural`, `wavelet`, `firstorder`, `shape` | None |
 | `--match_sample_count` | Subsample larger dataset to match smaller | off |
 | `--interpret` | Run interpretability analysis | off |
 | `--interpret_dir` | Output dir for interpretation plots | `outputs/interpretability_visualizations` |
@@ -282,6 +282,8 @@ Earlier FRD work:
 
 ## Links
 
+- [API Documentation](https://richardobi.github.io/frd-score/api) — overview, benchmarks, datasets, FAQ
+- [Change Log](https://richardobi.github.io/frd-score/changelog) — overview, benchmarks, datasets, FAQ
 - [Project Website](https://richardobi.github.io/frd/) — overview, benchmarks, datasets, FAQ
 - [Journal Article](https://www.sciencedirect.com/science/article/pii/S1361841526000125) — Medical Image Analysis, Vol. 110 (2026)
 - [arXiv Preprint](https://arxiv.org/abs/2412.01496)

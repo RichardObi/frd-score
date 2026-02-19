@@ -19,11 +19,17 @@ pip install -e ".[dev]"
 python -m pytest tests/ -v
 
 # Specific test class
-python -m pytest tests/test_frd.py::TestComputeFRD -v
+python -m pytest tests/test_frd.py::TestFRDv1_2D -v
+
+# Fast unit tests only (no radiomics extraction)
+python -m pytest tests/test_frd.py -k "TestExcludeFeatures or TestMeansOnly or TestMatchSampleCount" -v
 
 # With short traceback
 python -m pytest tests/ --tb=short -q
 ```
+
+!!! tip "Test runtime"
+    Integration tests that run full radiomics extraction can take several minutes each. Use `-k` to select specific test classes when iterating quickly.
 
 ## Code style
 
@@ -34,17 +40,10 @@ black src/ tests/
 isort src/ tests/
 ```
 
-Lint with flake8:
+Lint with [flake8](https://flake8.pycqa.org/):
 
 ```bash
 flake8 src/ tests/
-```
-
-Or run everything via [nox](https://nox.thea.codes/):
-
-```bash
-nox -s lint
-nox -s tests
 ```
 
 ## Project structure
@@ -54,35 +53,49 @@ frd-score/
 ├── src/frd_score/
 │   ├── __init__.py          # Public API exports
 │   ├── __main__.py          # CLI entry point
-│   ├── frd.py               # Core implementation
+│   ├── frd.py               # Core implementation (~2200 lines)
+│   ├── py.typed             # PEP 561 type marker
 │   └── configs/
 │       ├── extraction_2d.yaml
 │       └── extraction_3d.yaml
 ├── tests/
-│   └── test_frd.py          # Test suite (75+ tests)
-├── docs/                    # MkDocs documentation
+│   └── test_frd.py          # Test suite (77+ tests)
+├── docs/                    # MkDocs documentation source
+├── .github/workflows/
+│   ├── ci.yml               # CI: tests on push/PR
+│   ├── docs.yml             # Build & deploy docs to GitHub Pages
+│   └── publish.yml          # Publish to PyPI on release
 ├── recipe/                  # conda-forge recipe
 ├── setup.py                 # Package configuration
 ├── pyproject.toml           # Build system & tool config
+├── mkdocs.yml               # Documentation config
 ├── requirements.in          # Direct dependencies
-├── requirements.txt         # Pinned dependencies
-└── mkdocs.yml               # Documentation config
+└── requirements.txt         # Pinned dependencies
 ```
+
+## Building documentation locally
+
+```bash
+pip install mkdocs-material
+mkdocs serve
+```
+
+Then open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. Changes to `docs/` are live-reloaded.
 
 ## Submitting changes
 
-1. Fork the repository and create a feature branch.
+1. Fork the repository and create a feature branch from `main`.
 2. Make your changes with tests.
 3. Run `python -m pytest tests/ -v` and ensure all tests pass.
 4. Run `black` and `isort` on your changes.
-5. Open a pull request with a clear description.
+5. Open a pull request with a clear description of the change.
 
 ## Reporting issues
 
-Please include:
+Please open an issue at [github.com/RichardObi/frd-score/issues](https://github.com/RichardObi/frd-score/issues) and include:
 
 - Python version (`python --version`)
 - OS and architecture
-- `pip list | grep -E "frd-score|pyradiomics|numpy|scipy"`
+- Package versions: `pip list | grep -E "frd-score|pyradiomics|numpy|scipy"`
 - Full error traceback
 - Minimal reproduction script if possible

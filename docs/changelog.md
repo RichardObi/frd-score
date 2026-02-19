@@ -26,11 +26,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Normalisation reference modes** — `norm_ref` parameter with `"joint"`, `"d1"`, and `"independent"` options.
 - **Paper log transform** — `use_paper_log` flag for Eq. 3 consistency.
 - **PyRadiomics extraction controls** — `bin_width`, `normalize_scale`, `voxel_array_shift`, `log_sigma`, `config_path`, `settings_dict`.
-- **Feature exclusion** — `exclude_features` for post-extraction ablation (`"textural"`, `"wavelet"`, `"firstorder"`).
+- **Feature exclusion** — `exclude_features` for post-extraction ablation (`"textural"`, `"wavelet"`, `"firstorder"`, `"shape"`). The `"shape"` option removes `shape_*` and `shape2D_*` features, which are often constant when no mask is used.
 - **Sample matching** — `match_sample_count` to equalise dataset sizes.
 - **Means-only mode** — `means_only` for small datasets.
 - **MkDocs documentation** — hosted on GitHub Pages.
 - **GitHub Actions CI** — automated testing and docs deployment.
+- **`--version` flag** — print the installed frd-score version and exit.
 - **Pyradiomics compatibility** — import guard with helpful error message for broken PyPI release ([#903](https://github.com/AIM-Harvard/pyradiomics/issues/903)).
 
 ### Changed
