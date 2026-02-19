@@ -16,15 +16,13 @@
 
 # Fréchet Radiomics Distance (FRD)
 
+**[Project Website](https://richardobi.github.io/frd/)** · **[Paper (Medical Image Analysis)](https://www.sciencedirect.com/science/article/pii/S1361841526000125)** · **[arXiv](https://arxiv.org/abs/2412.01496)** · **[Evaluation Framework](https://github.com/mazurowski-lab/medical-image-similarity-metrics)**
+
 <p align="center">
   <img src="docs/assets/teaser.png" alt="FRD overview" width="75%">
 </p>
 
-**FRD** measures the similarity of [radiomic](https://pyradiomics.readthedocs.io/) image features between two datasets by computing the [Fréchet distance](https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance) between Gaussians fitted to the extracted and normalized features.
-
-> **[Project Website](https://richardobi.github.io/frd/)** · **[Paper (Medical Image Analysis)](https://www.sciencedirect.com/science/article/pii/S1361841526000125)** · **[arXiv](https://arxiv.org/abs/2412.01496)** · **[Evaluation Framework](https://github.com/mazurowski-lab/medical-image-similarity-metrics)**
-
-> The lower the FRD, the more similar the two datasets.
+**FRD** measures the similarity of [radiomic](https://pyradiomics.readthedocs.io/) image features between two datasets by computing the [Fréchet distance](https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance) between Gaussians fitted to the extracted and normalized features. The lower the FRD, the more similar the two datasets.
 
 FRD supports both **2D** (PNG, JPG, TIFF, BMP) and **3D** (NIfTI `.nii.gz`) radiological images.
 
