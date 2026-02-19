@@ -1,0 +1,56 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/).
+
+```bibtex
+@article{konz2026frd,
+  title   = {Fr\'{e}chet Radiomic Distance (FRD)},
+  journal = {Medical Image Analysis},
+  volume  = {110},
+  pages   = {103943},
+  year    = {2026},
+  doi     = {10.1016/j.media.2026.103943},
+}
+```
+
+## [1.1.0] — 2026-02-19
+
+### Added
+
+- **FRDv1 support** — extended feature extraction with ~464 features (Original + LoG + Wavelet), z-score normalisation, and log-transformed Fréchet distance. v1 is now the default.
+- **Unified API** — `compute_frd()` supports both v0 and v1 via the `frd_version` parameter.
+- **OOD detection** — `detect_ood()` function and `ood` CLI subcommand for image-level and dataset-level out-of-distribution detection.
+- **Interpretability** — `interpret_frd()` with t-SNE visualisations and per-feature difference rankings.
+- **Normalisation reference modes** — `norm_ref` parameter with `"joint"`, `"d1"`, and `"independent"` options.
+- **Paper log transform** — `use_paper_log` flag for Eq. 3 consistency.
+- **PyRadiomics extraction controls** — `bin_width`, `normalize_scale`, `voxel_array_shift`, `log_sigma`, `config_path`, `settings_dict`.
+- **Feature exclusion** — `exclude_features` for post-extraction ablation (`"textural"`, `"wavelet"`, `"firstorder"`).
+- **Sample matching** — `match_sample_count` to equalise dataset sizes.
+- **Means-only mode** — `means_only` for small datasets.
+- **MkDocs documentation** — hosted on GitHub Pages.
+- **GitHub Actions CI** — automated testing and docs deployment.
+- **Pyradiomics compatibility** — import guard with helpful error message for broken PyPI release ([#903](https://github.com/AIM-Harvard/pyradiomics/issues/903)).
+
+### Changed
+
+- **Python requirement** bumped from ≥3.8 to ≥3.10 (pyradiomics compatibility).
+- **pyradiomics dependency** moved to documented install step (PyPI does not support git URLs in `install_requires`).
+- Default FRD version changed from v0 to v1.
+- `pyproject.toml` now declares build system.
+
+### Fixed
+
+- Pyradiomics import failure on Python ≥3.10 handled with clear error message.
+
+## [1.0.0] — 2024
+
+### Added
+
+- Initial FRDv0 implementation.
+- CLI via `python -m frd_score`.
+- Min-max normalisation with FID-compatible range.
+- Save/load `.npz` statistics.
+- Multi-worker feature extraction.
+- Mask support for localised feature extraction.

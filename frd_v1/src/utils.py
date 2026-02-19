@@ -50,6 +50,8 @@ def frechet_distance(feats1, feats2, eps=1e-6, means_only=False):
     return (diff.dot(diff) + np.trace(sigma1) +
             np.trace(sigma2) - 2 * tr_covmean)
 
+
+
 def plot_tsne(feats1, feats2, feature_name, viz_folder):
     print("Running t-SNE on features...")
     emb = TSNE(n_components=2, perplexity=10, n_iter=10000, verbose=True).fit_transform(

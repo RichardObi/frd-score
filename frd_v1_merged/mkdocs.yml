@@ -1,0 +1,78 @@
+site_name: FRD-Score
+site_description: Fréchet Radiomics Distance — a metric for comparing medical image distributions
+site_url: https://richardobi.github.io/frd-score/
+repo_url: https://github.com/RichardObi/frd-score
+repo_name: RichardObi/frd-score
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: deep orange
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - content.code.annotate
+    - search.highlight
+    - search.suggest
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - User Guide:
+      - FRD Versions: guide/versions.md
+      - CLI Reference: guide/cli.md
+      - Interpretability: guide/interpretability.md
+      - OOD Detection: guide/ood.md
+  - API Reference: api.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - toc:
+      permalink: true
+  - tables
+  - attr_list
+  - md_in_html
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/RichardObi/frd-score
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/frd-score/
+    - icon: fontawesome/solid/globe
+      link: https://richardobi.github.io/frd/
+      name: Project Website

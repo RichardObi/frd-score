@@ -1,0 +1,62 @@
+# FRDv1 2D feature extraction configuration for PyRadiomics.
+# Includes Original, LoG, and Wavelet image filters for a comprehensive feature space (~464 features).
+# Reference: Konz, Osuala et al., "Fréchet Radiomic Distance (FRD)", Medical Image Analysis, 2026.
+
+imageType:
+  Original: {}
+  LoG:
+    sigma: [2.0, 3.0, 4.0, 5.0]
+  Wavelet: {}
+
+featureClass:
+  firstorder:
+  glcm:
+    - 'Autocorrelation'
+    - 'JointAverage'
+    - 'ClusterProminence'
+    - 'ClusterShade'
+    - 'ClusterTendency'
+    - 'Contrast'
+    - 'Correlation'
+    - 'DifferenceAverage'
+    - 'DifferenceEntropy'
+    - 'DifferenceVariance'
+    - 'JointEnergy'
+    - 'JointEntropy'
+    - 'Imc1'
+    - 'Imc2'
+    - 'Idm'
+    - 'Idmn'
+    - 'Id'
+    - 'Idn'
+    - 'InverseVariance'
+    - 'MaximumProbability'
+    - 'SumEntropy'
+    - 'SumSquares'
+  glrlm:
+  glszm:
+  ngtdm:
+
+setting:
+  # Normalization:
+  normalize: true
+  normalizeScale: 100
+
+  # Resampling:
+  interpolator: 'sitkBSpline'
+  resampledPixelSpacing: [2, 2, 0]
+  padDistance: 10
+  preCrop: true
+
+  # 2D settings
+  force2D: true
+  force2Ddimension: 0
+
+  # Image discretization:
+  binWidth: 5
+
+  # First order specific settings:
+  voxelArrayShift: 300
+
+  # Misc:
+  label: 1
