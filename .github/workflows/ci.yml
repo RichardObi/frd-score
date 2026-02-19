@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [main, master]
 
-defaults:
-  run:
-    working-directory: frd_v1_merged
-
 jobs:
   test:
     runs-on: ${{ matrix.os }}
@@ -31,7 +27,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake
-        working-directory: .
 
       - name: Install pyradiomics from GitHub
         run: pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master
@@ -81,4 +76,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist
-          path: frd_v1_merged/dist/
+          path: dist/

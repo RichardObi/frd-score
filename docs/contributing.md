@@ -50,7 +50,7 @@ nox -s tests
 ## Project structure
 
 ```
-frd_v1_merged/
+frd-score/
 ├── src/frd_score/
 │   ├── __init__.py          # Public API exports
 │   ├── __main__.py          # CLI entry point
@@ -61,6 +61,7 @@ frd_v1_merged/
 ├── tests/
 │   └── test_frd.py          # Test suite (75+ tests)
 ├── docs/                    # MkDocs documentation
+├── recipe/                  # conda-forge recipe
 ├── setup.py                 # Package configuration
 ├── pyproject.toml           # Build system & tool config
 ├── requirements.in          # Direct dependencies
