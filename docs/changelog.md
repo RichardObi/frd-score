@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 
+- **3D medical image test fixtures** — 8 downsampled (32×32×16) NIfTI volumes from breast MRI in `tests/data/medical_3d/{d1,d2}/` (~77 KB total), providing realistic 3D end-to-end test coverage.
+- **`TestMedicalImages3D` test class** — 6 new tests exercising `compute_frd()` on real 3D medical images: v0/v1 computation, same-distribution sanity check, `norm_ref`, `exclude_features` (shape), and `means_only`.
 - **Medical image test fixtures** — 20 downscaled (128×128) grayscale PNGs from diverse modalities in `tests/data/medical_2d/{d1,d2}/`, providing realistic end-to-end test coverage.
 - **`TestMedicalImages2D` test class** — 10 new tests exercising `compute_frd()` on real medical images: v0/v1 computation, same-distribution sanity check, `norm_ref` variants, `exclude_features`, `resize_size`, `means_only`, and `match_sample_count`.
 

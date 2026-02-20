@@ -34,6 +34,8 @@ python -m pytest tests/ --tb=short -q
 !!! info "Medical image fixtures"
     `TestMedicalImages2D` uses real downscaled medical images in `tests/data/medical_2d/{d1,d2}/`. These 128×128 grayscale PNGs (~155 KB total) are committed to the repo and provide more realistic test coverage than synthetic noise images.
 
+    `TestMedicalImages3D` uses real downsampled 3D NIfTI volumes in `tests/data/medical_3d/{d1,d2}/`. These 32×32×16 uint8 breast MRI volumes (~77 KB total) test the full 3D radiomics extraction pipeline.
+
 ## Code style
 
 The project uses [Black](https://github.com/psf/black) (line length 88) and [isort](https://pycqa.github.io/isort/) for formatting:
@@ -62,8 +64,9 @@ frd-score/
 │       ├── extraction_2d.yaml
 │       └── extraction_3d.yaml
 ├── tests/
-│   ├── test_frd.py          # Test suite (87+ tests)
-│   └── data/medical_2d/     # Real medical image fixtures (128×128 grayscale)
+│   ├── test_frd.py          # Test suite (93+ tests)
+│   ├── data/medical_2d/     # Real 2D medical image fixtures (128×128 grayscale)
+│   └── data/medical_3d/     # Real 3D medical image fixtures (32×32×16 NIfTI)
 ├── docs/                    # MkDocs documentation source
 ├── .github/workflows/
 │   ├── ci.yml               # CI: tests on push/PR

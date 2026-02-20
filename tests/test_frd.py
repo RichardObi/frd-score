@@ -1855,6 +1855,135 @@ class TestMedicalImages2D:
         assert frd_value >= 0
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  3D Medical image tests (real downscaled NIfTI from tests/data/medical_3d)
+# ─────────────────────────────────────────────────────────────────────────────
+
+_MEDICAL_3D_DIR = Path(__file__).resolve().parent / "data" / "medical_3d"
+_MEDICAL_3D_D1 = _MEDICAL_3D_DIR / "d1"
+_MEDICAL_3D_D2 = _MEDICAL_3D_DIR / "d2"
+_HAS_MEDICAL_3D = _MEDICAL_3D_D1.is_dir() and _MEDICAL_3D_D2.is_dir()
+
+
+class TestMedicalImages3D:
+    """End-to-end tests using real (downscaled) 3D NIfTI volumes.
+
+    The fixtures live in ``tests/data/medical_3d/{d1,d2}/`` and contain
+    32×32×16 uint8 volumes derived from breast MRI scans.
+    """
+
+    @staticmethod
+    def _skip_if_missing():
+        import pytest
+
+        if not _HAS_MEDICAL_3D:
+            pytest.skip("3D medical image fixtures not found in tests/data/medical_3d")
+
+    # -- basic FRD computation ------------------------------------------------
+
+    def test_frd_v1_3d_medical(self):
+        """Compute FRD v1 between two real 3D distributions."""
+        self._skip_if_missing()
+        frd_value = frd.compute_frd(
+            [str(_MEDICAL_3D_D1), str(_MEDICAL_3D_D2)],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            norm_ref="joint",
+        )
+        print(f"FRD v1 3D (D1 vs D2) medical: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
+        assert frd_value >= 0
+
+    def test_frd_v0_3d_medical(self):
+        """Compute FRD v0 between two real 3D distributions."""
+        self._skip_if_missing()
+        frd_value = frd.compute_frd(
+            [str(_MEDICAL_3D_D1), str(_MEDICAL_3D_D2)],
+            frd_version="v0",
+            verbose=False,
+            save_features=False,
+        )
+        print(f"FRD v0 3D (D1 vs D2) medical: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
+        assert frd_value >= 0
+
+    # -- same-distribution sanity check ----------------------------------------
+
+    def test_same_distribution_lower_frd_3d(self):
+        """FRD(D1, D1) should be smaller than FRD(D1, D2) for 3D volumes."""
+        self._skip_if_missing()
+        frd_self = frd.compute_frd(
+            [str(_MEDICAL_3D_D1), str(_MEDICAL_3D_D1)],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            norm_ref="joint",
+        )
+        frd_cross = frd.compute_frd(
+            [str(_MEDICAL_3D_D1), str(_MEDICAL_3D_D2)],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            norm_ref="joint",
+        )
+        print(f"FRD 3D self={frd_self:.6f}, cross={frd_cross:.6f}")
+        assert frd_self < frd_cross, (
+            f"Self-distance ({frd_self}) should be less than "
+            f"cross-distribution distance ({frd_cross})"
+        )
+
+    # -- norm_ref variant -----------------------------------------------------
+
+    def test_norm_ref_d1_3d_medical(self):
+        """FRD v1 with norm_ref='d1' on real 3D volumes."""
+        self._skip_if_missing()
+        frd_value = frd.compute_frd(
+            [str(_MEDICAL_3D_D1), str(_MEDICAL_3D_D2)],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            norm_ref="d1",
+        )
+        print(f"FRD v1 3D norm_ref=d1: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
+        assert frd_value >= 0
+
+    # -- exclude_features -----------------------------------------------------
+
+    def test_exclude_shape_3d_medical(self):
+        """Excluding shape features should still produce valid FRD for 3D."""
+        self._skip_if_missing()
+        frd_value = frd.compute_frd(
+            [str(_MEDICAL_3D_D1), str(_MEDICAL_3D_D2)],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            norm_ref="joint",
+            exclude_features=["shape"],
+        )
+        print(f"FRD v1 3D exclude shape: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
+        assert frd_value >= 0
+
+    # -- means_only -----------------------------------------------------------
+
+    def test_means_only_3d_medical(self):
+        """FRD with means_only=True on real 3D volumes."""
+        self._skip_if_missing()
+        frd_value = frd.compute_frd(
+            [str(_MEDICAL_3D_D1), str(_MEDICAL_3D_D2)],
+            frd_version="v1",
+            verbose=False,
+            save_features=False,
+            norm_ref="joint",
+            means_only=True,
+        )
+        print(f"FRD v1 3D means_only: {frd_value}")
+        assert isinstance(frd_value, (float, np.floating))
+        assert frd_value >= 0
+
+
 class TestPyradiomicsCompat:
     """Tests that pyradiomics installs, imports, and works correctly.
 
