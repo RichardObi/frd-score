@@ -6,12 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ```bibtex
 @article{konz2026frd,
-  title   = {Fr\'{e}chet Radiomic Distance (FRD)},
-  journal = {Medical Image Analysis},
-  volume  = {110},
-  pages   = {103943},
-  year    = {2026},
-  doi     = {10.1016/j.media.2026.103943},
+    title     = {Fr\'{e}chet Radiomic Distance (FRD): A Versatile Metric for
+                 Comparing Medical Imaging Datasets},
+    author    = {Konz, Nicholas and Osuala, Richard and Verma, Preeti and
+                 Chen, Yuwen and Gu, Hanxue and Dong, Haoyu and Chen, Yaqian
+                 and Marshall, Andrew and Garrucho, Lidia and Kushibar, Kaisar
+                 and Lang, Daniel M. and Kim, Gene S. and Grimm, Lars J. and
+                 Lewin, John M. and Duncan, James S. and Schnabel, Julia A. and
+                 Diaz, Oliver and Lekadir, Karim and Mazurowski, Maciej A.},
+    journal   = {Medical Image Analysis},
+    volume    = {110},
+    pages     = {103943},
+    year      = {2026},
+    publisher = {Elsevier},
+    doi       = {10.1016/j.media.2026.103943},
+    url       = {https://www.sciencedirect.com/science/article/pii/S1361841526000125},
 }
 ```
 
