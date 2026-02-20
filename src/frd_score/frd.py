@@ -350,23 +350,8 @@ def _add_shared_extraction_args(parser):
     )
 
 
-def parse_args() -> argparse.Namespace:
-    from . import __version__
-
-    parser = argparse.ArgumentParser(
-        description="Calculates the Frechet Radiomics Distance between two distributions of extracted pyradiomics "
-        "features."
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version=f"%(prog)s {__version__}",
-    )
-
-    # ── Subcommands ───────────────────────────────────────────────────────────
-    subparsers = parser.add_subparsers(dest="subcommand")
-
-    # OOD detection subcommand
+def _build_ood_parser(subparsers):
+    """Add the ``ood`` subcommand to *subparsers* and return the sub-parser."""
     ood_parser = subparsers.add_parser(
         "ood",
         help="Out-of-distribution detection using radiomics features. "
@@ -424,8 +409,11 @@ def parse_args() -> argparse.Namespace:
     )
     # Add all shared extraction/normalization arguments to the OOD subparser
     _add_shared_extraction_args(ood_parser)
+    return ood_parser
 
-    # ── Main positional arguments ─────────────────────────────────────────────
+
+def _add_frd_specific_args(parser):
+    """Add arguments that are only relevant to the main FRD computation."""
     parser.add_argument(
         "paths",
         type=str,
@@ -435,8 +423,6 @@ def parse_args() -> argparse.Namespace:
 
     # Add shared extraction/normalization arguments to the main parser
     _add_shared_extraction_args(parser)
-
-    # ── FRD-specific arguments (not used by OOD) ─────────────────────────────
 
     parser.add_argument(
         "-s",
@@ -486,6 +472,71 @@ def parse_args() -> argparse.Namespace:
         default="outputs/interpretability_visualizations",
         help="Output directory for interpretability visualizations (default: outputs/interpretability_visualizations).",
     )
+
+
+# Known subcommands for the pre-parse peek (see parse_args).
+_SUBCOMMANDS = frozenset({"ood"})
+
+
+def parse_args() -> argparse.Namespace:
+    """Parse CLI arguments.
+
+    argparse cannot reliably mix top-level positional arguments with
+    ``add_subparsers``: it greedily tries to match the first positional
+    token against subcommand names, so a plain path like ``/data/d1``
+    fails with *"invalid choice"*.
+
+    To work around this we peek at ``sys.argv`` to decide which parsing
+    strategy to use **before** building the parser:
+
+    * If the first positional token is a known subcommand (e.g. ``ood``),
+      the parser is built with subparsers.
+    * Otherwise the parser is built for the default FRD-compute mode
+      (positional ``paths`` on the root parser, no subparsers).
+    """
+    import sys
+
+    from . import __version__
+
+    # --- Peek at argv to decide parsing strategy ----------------------------
+    # Find the first token that is not a flag (starts with '-') and is not
+    # the sentinel '--'.  Because some flags consume a following value
+    # (e.g. --resize_size 64), the detected token may actually be a flag's
+    # value rather than the true first positional argument — but that value
+    # can never equal a subcommand name, so the logic stays correct.
+    _first_pos = None
+    for _a in sys.argv[1:]:
+        if _a == "--":
+            break
+        if not _a.startswith("-"):
+            _first_pos = _a
+            break
+    _use_subcommand = _first_pos in _SUBCOMMANDS
+
+    # --- Build the appropriate parser --------------------------------------
+    _epilog = (
+        "subcommands:\n"
+        "  ood         Out-of-distribution detection "
+        "(run `%(prog)s ood --help` for details)"
+    )
+
+    parser = argparse.ArgumentParser(
+        description="Calculates the Frechet Radiomics Distance between two "
+        "distributions of extracted pyradiomics features.",
+        epilog=_epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
+
+    if _use_subcommand:
+        subparsers = parser.add_subparsers(dest="subcommand")
+        _build_ood_parser(subparsers)
+    else:
+        _add_frd_specific_args(parser)
 
     args = parser.parse_args()
 
