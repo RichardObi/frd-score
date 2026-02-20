@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 }
 ```
 
+## [Unreleased]
+
+### Added
+
+- **Medical image test fixtures** — 20 downscaled (128×128) grayscale PNGs from diverse modalities in `tests/data/medical_2d/{d1,d2}/`, providing realistic end-to-end test coverage.
+- **`TestMedicalImages2D` test class** — 10 new tests exercising `compute_frd()` on real medical images: v0/v1 computation, same-distribution sanity check, `norm_ref` variants, `exclude_features`, `resize_size`, `means_only`, and `match_sample_count`.
+
 ## [1.1.0] — 2026-02-19
 
 ### Added

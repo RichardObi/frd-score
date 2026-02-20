@@ -31,6 +31,9 @@ python -m pytest tests/ --tb=short -q
 !!! tip "Test runtime"
     Integration tests that run full radiomics extraction can take several minutes each. Use `-k` to select specific test classes when iterating quickly.
 
+!!! info "Medical image fixtures"
+    `TestMedicalImages2D` uses real downscaled medical images in `tests/data/medical_2d/{d1,d2}/`. These 128×128 grayscale PNGs (~155 KB total) are committed to the repo and provide more realistic test coverage than synthetic noise images.
+
 ## Code style
 
 The project uses [Black](https://github.com/psf/black) (line length 88) and [isort](https://pycqa.github.io/isort/) for formatting:
@@ -59,7 +62,8 @@ frd-score/
 │       ├── extraction_2d.yaml
 │       └── extraction_3d.yaml
 ├── tests/
-│   └── test_frd.py          # Test suite (77+ tests)
+│   ├── test_frd.py          # Test suite (87+ tests)
+│   └── data/medical_2d/     # Real medical image fixtures (128×128 grayscale)
 ├── docs/                    # MkDocs documentation source
 ├── .github/workflows/
 │   ├── ci.yml               # CI: tests on push/PR
