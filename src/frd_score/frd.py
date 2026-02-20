@@ -22,21 +22,20 @@ Usage:
 import argparse
 import csv
 import logging
+import multiprocessing as mp
 import os
 import pathlib
-import warnings
 import time
-from pathlib import Path
-import multiprocessing as mp
+import warnings
 from functools import partial
+from pathlib import Path
 
 import cv2
 import numpy as np
 from scipy import linalg
 
 try:
-    from radiomics import featureextractor
-    from radiomics import setVerbosity
+    from radiomics import featureextractor, setVerbosity
 except ImportError as _exc:
     _msg = (
         "pyradiomics is not installed or failed to import.  "
@@ -51,14 +50,17 @@ import SimpleITK as sitk
 
 try:
     from sklearn.manifold import TSNE
+
     _HAS_SKLEARN = True
 except ImportError:
     _HAS_SKLEARN = False
 
 try:
     import matplotlib
+
     matplotlib.use("Agg")  # non-interactive backend
     import matplotlib.pyplot as plt
+
     _HAS_MATPLOTLIB = True
 except ImportError:
     _HAS_MATPLOTLIB = False
@@ -143,16 +145,20 @@ EXCLUDE_OPTIONS = {EXCLUDE_TEXTURAL, EXCLUDE_WAVELET, EXCLUDE_FIRSTORDER, EXCLUD
 # ─── Normalization reference mode ──────────────────────────────────────────────
 # Controls which distribution's statistics are used as the normalization base.
 
-NORM_REF_JOINT = "joint"              # Concatenate D1∪D2, normalize against joint stats
-NORM_REF_D1 = "d1"                    # Normalize both D1 and D2 using D1's statistics only
-NORM_REF_INDEPENDENT = "independent"  # Each set normalized using only its own statistics
+NORM_REF_JOINT = "joint"  # Concatenate D1∪D2, normalize against joint stats
+NORM_REF_D1 = "d1"  # Normalize both D1 and D2 using D1's statistics only
+NORM_REF_INDEPENDENT = (
+    "independent"  # Each set normalized using only its own statistics
+)
 
 # Version-specific defaults:
 # v0 default: 'joint' — matches original v0's norm_sets_separately=True behavior
 # v1 default: 'd1' — matches original v1's D1-only normalization (paper Eq. 3)
 V0_DEFAULT_NORM_REF = NORM_REF_JOINT
 V1_DEFAULT_NORM_REF = NORM_REF_D1
-NORM_REF_DEFAULT = None  # None means 'use version default'; resolved in _resolve_defaults()
+NORM_REF_DEFAULT = (
+    None  # None means 'use version default'; resolved in _resolve_defaults()
+)
 NORM_REF_OPTIONS = {NORM_REF_JOINT, NORM_REF_D1, NORM_REF_INDEPENDENT}
 
 # ─── Config paths (for v1 YAML-based extraction) ─────────────────────────────
@@ -165,6 +171,7 @@ V1_CONFIG_3D = os.path.join(_PACKAGE_DIR, "configs", "extraction_3d.yaml")
 # ─────────────────────────────────────────────────────────────────────────────
 #  CLI argument parsing
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _add_shared_extraction_args(parser):
     """Add CLI arguments shared between the main FRD command and subcommands (OOD, etc.).
@@ -489,7 +496,9 @@ def parse_args() -> argparse.Namespace:
         elif len(args.resize_size) == 2:
             args.resize_size = tuple(args.resize_size)
         else:
-            parser.error("--resize_size accepts 1 value (square) or 2 values (width height).")
+            parser.error(
+                "--resize_size accepts 1 value (square) or 2 values (width height)."
+            )
 
     return args
 
@@ -497,6 +506,7 @@ def parse_args() -> argparse.Namespace:
 # ─────────────────────────────────────────────────────────────────────────────
 #  Image utilities
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def resize_image_array(sitk_image_array, resize_size, interpolation=cv2.INTER_LINEAR):
     """Resize a 2D or 3D numpy array in the spatial dims.
@@ -555,6 +565,7 @@ def _detect_image_dimensionality(files):
 #  v0 feature extraction (settings-dict based)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def get_feature_extractor_v0(features, settings_dict: dict = None):
     """Returns a pyradiomics feature extractor for v0.
 
@@ -580,6 +591,7 @@ def get_feature_extractor_v0(features, settings_dict: dict = None):
 #  v1 feature extraction (YAML-config based)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def get_feature_extractor_v1(config_path: str):
     """Returns a pyradiomics feature extractor for v1, configured via a YAML file.
 
@@ -597,6 +609,7 @@ def get_feature_extractor_v1(config_path: str):
 # ─────────────────────────────────────────────────────────────────────────────
 #  Unified feature extractor factory
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def get_feature_extractor(
     frd_version: str = FRD_VERSION_DEFAULT,
@@ -659,7 +672,9 @@ def get_feature_extractor(
                 if cls_name in yaml_features:
                     # Restore the YAML's specific feature selection for this class
                     # enableFeaturesByName takes **kwargs: className=[featureNames] or None=all
-                    extractor.enableFeaturesByName(**{cls_name: yaml_features[cls_name]})
+                    extractor.enableFeaturesByName(
+                        **{cls_name: yaml_features[cls_name]}
+                    )
                 else:
                     # Class was not in the YAML config — enable all features in it
                     extractor.enableFeatureClassByName(cls_name)
@@ -673,9 +688,7 @@ def get_feature_extractor(
         extractor.disableAllImageTypes()
         for img_type in image_types:
             if img_type == "LoG":
-                extractor.enableImageTypeByName(
-                    "LoG", customArgs={"sigma": log_sigma}
-                )
+                extractor.enableImageTypeByName("LoG", customArgs={"sigma": log_sigma})
             else:
                 extractor.enableImageTypeByName(img_type)
     elif config_path is None:
@@ -683,9 +696,7 @@ def get_feature_extractor(
         # (user may have supplied --log_sigma without --image_types)
         enabled_types = extractor.enabledImagetypes
         if "LoG" in enabled_types:
-            extractor.enableImageTypeByName(
-                "LoG", customArgs={"sigma": log_sigma}
-            )
+            extractor.enableImageTypeByName("LoG", customArgs={"sigma": log_sigma})
 
     # Apply PyRadiomics setting overrides
     if bin_width is not None and config_path is None:
@@ -702,8 +713,12 @@ def get_feature_extractor(
 #  Per-image feature extraction
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def process_image_mask_pair(
-    image_mask_pair, resize_size=None, feature_extractor=None, verbose=False,
+    image_mask_pair,
+    resize_size=None,
+    feature_extractor=None,
+    verbose=False,
     frd_version=FRD_VERSION_DEFAULT,
 ):
     """Extract radiomics features from an (image, mask) pair.
@@ -836,6 +851,7 @@ def process_image_mask_pair(
 #  Batch feature extraction
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def compute_features(
     files,
     feature_extractor,
@@ -919,6 +935,7 @@ def compute_features(
 #  CSV save
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def save_features_to_csv(csv_file_path, image_paths, mask_paths, feature_data):
     """Save extracted feature data to a CSV file."""
     with open(csv_file_path, "w", newline="") as csv_file:
@@ -957,6 +974,7 @@ def save_features_to_csv(csv_file_path, image_paths, mask_paths, feature_data):
 #  Frechet distance
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6, means_only=False):
     """Numpy implementation of the Frechet Distance.
 
@@ -976,10 +994,12 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6, means_only=Fa
     sigma1 = np.atleast_2d(sigma1)
     sigma2 = np.atleast_2d(sigma2)
 
-    assert mu1.shape == mu2.shape, \
-        "Dataset1 and dataset2 mean vectors have different lengths"
-    assert sigma1.shape == sigma2.shape, \
-        "Dataset1 and dataset2 covariances have different dimensions"
+    assert (
+        mu1.shape == mu2.shape
+    ), "Dataset1 and dataset2 mean vectors have different lengths"
+    assert (
+        sigma1.shape == sigma2.shape
+    ), "Dataset1 and dataset2 covariances have different dimensions"
 
     diff = mu1 - mu2
 
@@ -1012,6 +1032,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6, means_only=Fa
 # ─────────────────────────────────────────────────────────────────────────────
 #  Normalization utilities
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def z_score_normalize(
     features,
@@ -1135,6 +1156,7 @@ def min_max_normalize(
 #  Post-extraction feature filtering
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _apply_exclude_features(feature_arrays, feature_names, exclude_features):
     """Remove features matching the specified categories from all arrays.
 
@@ -1223,6 +1245,7 @@ def _apply_match_sample_count(feature_list):
 #  Interpretability analysis
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def interpret_frd(
     feature_list,
     feature_names,
@@ -1264,17 +1287,22 @@ def interpret_frd(
         else:
             logging.info("Running t-SNE on radiomic features...")
             all_feats = np.concatenate([feats1, feats2], axis=0)
-            emb = TSNE(n_components=2, perplexity=min(10, all_feats.shape[0] - 1),
-                       n_iter=1000).fit_transform(all_feats)
+            emb = TSNE(
+                n_components=2, perplexity=min(10, all_feats.shape[0] - 1), n_iter=1000
+            ).fit_transform(all_feats)
 
-            domain_labels = np.concatenate([
-                np.zeros(feats1.shape[0]),
-                np.ones(feats2.shape[0]),
-            ])
+            domain_labels = np.concatenate(
+                [
+                    np.zeros(feats1.shape[0]),
+                    np.ones(feats2.shape[0]),
+                ]
+            )
             plt.figure(figsize=(6, 6), dpi=150)
             for label, name, color in [(0, "D1", "tab:blue"), (1, "D2", "tab:orange")]:
                 mask = domain_labels == label
-                plt.scatter(emb[mask, 0], emb[mask, 1], label=name, alpha=0.5, c=color, s=20)
+                plt.scatter(
+                    emb[mask, 0], emb[mask, 1], label=name, alpha=0.5, c=color, s=20
+                )
             plt.title("Radiomic Feature t-SNE")
             plt.legend()
             plt.tight_layout()
@@ -1289,7 +1317,9 @@ def interpret_frd(
     sorted_idx = mean_diff_sq.argsort()[::-1]
 
     top_k = min(20, len(feature_names))
-    top_features = [(feature_names_arr[i], float(mean_diff_sq[i])) for i in sorted_idx[:top_k]]
+    top_features = [
+        (feature_names_arr[i], float(mean_diff_sq[i])) for i in sorted_idx[:top_k]
+    ]
     results["top_changed_features"] = top_features
 
     # Plot per-feature differences
@@ -1317,6 +1347,7 @@ def interpret_frd(
 # ─────────────────────────────────────────────────────────────────────────────
 #  OOD detection
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def detect_ood(
     feature_list,
@@ -1384,13 +1415,15 @@ def detect_ood(
             p_values = 1 - sps.norm.cdf(z)
         elif id_dist_assumption == "t":
             threshold = sigma_val * sps.t.ppf(0.95, max(dof, 1)) + mu_val
-            t_stat = (test_scores - mu_val) / max(sigma_val / np.sqrt(len(val_scores)), 1e-10)
+            t_stat = (test_scores - mu_val) / max(
+                sigma_val / np.sqrt(len(val_scores)), 1e-10
+            )
             p_values = 1 - sps.t.cdf(t_stat, max(dof, 1))
         elif id_dist_assumption == "counting":
             threshold = np.percentile(val_scores, 95)
-            p_values = np.array([
-                np.sum(val_scores > score) / len(val_scores) for score in test_scores
-            ])
+            p_values = np.array(
+                [np.sum(val_scores > score) / len(val_scores) for score in test_scores]
+            )
         else:
             raise ValueError(f"Unknown id_dist_assumption: {id_dist_assumption}")
 
@@ -1409,13 +1442,19 @@ def detect_ood(
                 writer.writerow(["filename", "ood_score", "ood_prediction", "p_value"])
                 for i in range(len(test_scores)):
                     fname = filenames[i] if i < len(filenames) else str(i)
-                    writer.writerow([fname, test_scores[i], bool(predictions[i]), p_values[i]])
+                    writer.writerow(
+                        [fname, test_scores[i], bool(predictions[i]), p_values[i]]
+                    )
             else:
                 writer.writerow(["index", "ood_score", "ood_prediction", "p_value"])
                 for i in range(len(test_scores)):
-                    writer.writerow([i, test_scores[i], bool(predictions[i]), p_values[i]])
+                    writer.writerow(
+                        [i, test_scores[i], bool(predictions[i]), p_values[i]]
+                    )
         print(f"OOD predictions saved to {csv_path}")
-        print(f"Threshold: {threshold:.4f}, OOD detected: {int(predictions.sum())}/{len(predictions)}")
+        print(
+            f"Threshold: {threshold:.4f}, OOD detected: {int(predictions.sum())}/{len(predictions)}"
+        )
 
     elif detection_type == "dataset":
         try:
@@ -1427,13 +1466,17 @@ def detect_ood(
             )
 
         all_scores = np.concatenate([val_scores, test_scores])
-        all_labels = np.concatenate([np.zeros(len(val_scores)), np.ones(len(test_scores))])
+        all_labels = np.concatenate(
+            [np.zeros(len(val_scores)), np.ones(len(test_scores))]
+        )
         auc_dev = 2.0 * abs(roc_auc_score(all_labels, all_scores) - 0.5)
         results["nfrd"] = float(auc_dev)
         print(f"Dataset-level OOD score (nFRD): {auc_dev:.4f}")
 
     else:
-        raise ValueError(f"detection_type must be 'image' or 'dataset', got '{detection_type}'.")
+        raise ValueError(
+            f"detection_type must be 'image' or 'dataset', got '{detection_type}'."
+        )
 
     return results
 
@@ -1441,6 +1484,7 @@ def detect_ood(
 # ─────────────────────────────────────────────────────────────────────────────
 #  Statistics calculation
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def calculate_feature_statistics(
     file_lists: list,
@@ -1613,16 +1657,25 @@ def calculate_feature_statistics(
                 f"radiomics_set{idx}_results_normalized_{folder_name}_{unique_identifier}.csv",
             )
             save_features_to_csv(
-                csv_file_path, file_lists[idx], all_mask_paths[idx], all_radiomics_results[idx]
+                csv_file_path,
+                file_lists[idx],
+                all_mask_paths[idx],
+                all_radiomics_results[idx],
             )
             # Save normalized features as dicts for the normalized CSV
             norm_dicts = []
             for row_idx in range(normalized_features.shape[0]):
                 norm_dicts.append(
-                    {fn: float(normalized_features[row_idx, col_idx])
-                     for col_idx, fn in enumerate(feature_names)}
+                    {
+                        fn: float(normalized_features[row_idx, col_idx])
+                        for col_idx, fn in enumerate(feature_names)
+                    }
                 )
-            norm_mask_paths = all_mask_paths[idx] if all_mask_paths[idx] else [None] * len(file_lists[idx])
+            norm_mask_paths = (
+                all_mask_paths[idx]
+                if all_mask_paths[idx]
+                else [None] * len(file_lists[idx])
+            )
             save_features_to_csv(
                 norm_csv_file_path, file_lists[idx], norm_mask_paths, norm_dicts
             )
@@ -1727,7 +1780,10 @@ def compute_statistics_of_paths(
 #  Version-aware defaults
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _resolve_defaults(frd_version, norm_type, norm_range, features, image_types, norm_ref=None):
+
+def _resolve_defaults(
+    frd_version, norm_type, norm_range, features, image_types, norm_ref=None
+):
     """Resolve None args to version-specific defaults."""
     if frd_version == FRD_VERSION_V0:
         if norm_type is None:
@@ -1754,6 +1810,7 @@ def _resolve_defaults(frd_version, norm_type, norm_range, features, image_types,
 # ─────────────────────────────────────────────────────────────────────────────
 #  Main API: compute_frd
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def compute_frd(
     paths,
@@ -1857,7 +1914,11 @@ def compute_frd(
                 f"Invalid path: {p}. Provide a valid directory or list of files."
             )
 
-    if norm_ref != NORM_REF_INDEPENDENT and not isinstance(paths[0], list) and paths[0].endswith(".npz"):
+    if (
+        norm_ref != NORM_REF_INDEPENDENT
+        and not isinstance(paths[0], list)
+        and paths[0].endswith(".npz")
+    ):
         raise ValueError(
             f"norm_ref='{norm_ref}' is not supported with .npz files (statistics already computed). "
             "Use norm_ref='independent' or provide image paths."
@@ -1873,12 +1934,18 @@ def compute_frd(
         else:
             _first_path_obj = pathlib.Path(_first_path)
             _files_for_detection = sorted(
-                [f for ext in IMAGE_EXTENSIONS for f in _first_path_obj.glob(f"*.{ext}")]
+                [
+                    f
+                    for ext in IMAGE_EXTENSIONS
+                    for f in _first_path_obj.glob(f"*.{ext}")
+                ]
             )
         if _files_for_detection:
             image_dim = _detect_image_dimensionality(_files_for_detection)
             if verbose:
-                logging.info(f"Detected {image_dim}D images. Using corresponding v1 config.")
+                logging.info(
+                    f"Detected {image_dim}D images. Using corresponding v1 config."
+                )
 
     feature_extractor = get_feature_extractor(
         frd_version=frd_version,
@@ -1897,27 +1964,32 @@ def compute_frd(
         for key, val in settings_dict.items():
             feature_extractor.settings[key] = val
 
-    mu_list, sigma_list, normalized_feature_list, feature_names = compute_statistics_of_paths(
-        paths,
-        norm_type,
-        norm_range,
-        feature_extractor,
-        paths_mask=paths_masks,
-        resize_size=resize_size,
-        verbose=verbose,
-        save_features=save_features,
-        norm_ref=norm_ref,
-        num_workers=num_workers,
-        exclude_features=exclude_features,
-        match_sample_count=match_sample_count,
-        frd_version=frd_version,
+    mu_list, sigma_list, normalized_feature_list, feature_names = (
+        compute_statistics_of_paths(
+            paths,
+            norm_type,
+            norm_range,
+            feature_extractor,
+            paths_mask=paths_masks,
+            resize_size=resize_size,
+            verbose=verbose,
+            save_features=save_features,
+            norm_ref=norm_ref,
+            num_workers=num_workers,
+            exclude_features=exclude_features,
+            match_sample_count=match_sample_count,
+            frd_version=frd_version,
+        )
     )
 
     if verbose:
         logging.debug(f"mu_list shapes: {[m.shape for m in mu_list]}")
 
     frd_value = calculate_frechet_distance(
-        mu_list[0], sigma_list[0], mu_list[1], sigma_list[1],
+        mu_list[0],
+        sigma_list[0],
+        mu_list[1],
+        sigma_list[1],
         means_only=means_only,
     )
 
@@ -1955,6 +2027,7 @@ def compute_frd(
 # ─────────────────────────────────────────────────────────────────────────────
 #  Save stats (.npz)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def save_frd_stats(
     paths,
@@ -1996,13 +2069,9 @@ def save_frd_stats(
         )
 
     if not isinstance(paths[0], list) and not os.path.exists(paths[0]):
-        raise RuntimeError(
-            f"Invalid input path: {paths[0]}"
-        )
+        raise RuntimeError(f"Invalid input path: {paths[0]}")
     if os.path.exists(paths[1]):
-        raise RuntimeError(
-            f"Output .npz file already exists: {paths[1]}"
-        )
+        raise RuntimeError(f"Output .npz file already exists: {paths[1]}")
     elif not paths[1].endswith(".npz"):
         logging.warning(
             f"Output path '{paths[1]}' does not have .npz extension. Continuing anyway."
@@ -2017,7 +2086,11 @@ def save_frd_stats(
         else:
             _first_path_obj = pathlib.Path(_first_path)
             _files_for_detection = sorted(
-                [f for ext in IMAGE_EXTENSIONS for f in _first_path_obj.glob(f"*.{ext}")]
+                [
+                    f
+                    for ext in IMAGE_EXTENSIONS
+                    for f in _first_path_obj.glob(f"*.{ext}")
+                ]
             )
         if _files_for_detection:
             image_dim = _detect_image_dimensionality(_files_for_detection)
@@ -2065,6 +2138,7 @@ def save_frd_stats(
 #  main() for CLI usage
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def main():
     args = parse_args()
 
@@ -2098,7 +2172,11 @@ def main():
             else:
                 _first_path_obj = pathlib.Path(_first_path)
                 _files_for_detection = sorted(
-                    [f for ext in IMAGE_EXTENSIONS for f in _first_path_obj.glob(f"*.{ext}")]
+                    [
+                        f
+                        for ext in IMAGE_EXTENSIONS
+                        for f in _first_path_obj.glob(f"*.{ext}")
+                    ]
                 )
             if _files_for_detection:
                 image_dim = _detect_image_dimensionality(_files_for_detection)
@@ -2224,7 +2302,9 @@ def main():
         use_paper_log=use_paper_log,
         means_only=getattr(args, "means_only", False),
         interpret=getattr(args, "interpret", False),
-        interpret_dir=getattr(args, "interpret_dir", "outputs/interpretability_visualizations"),
+        interpret_dir=getattr(
+            args, "interpret_dir", "outputs/interpretability_visualizations"
+        ),
         **_new_params,
     )
 

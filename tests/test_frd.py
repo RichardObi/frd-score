@@ -63,8 +63,9 @@ class TestFRDv1_2D:
         self.logger.warning(f"FRD v1 2D value: {frd_value}")
         print(f"FRD v1 2D value: {frd_value}")
         # v1 returns log-transformed value
-        assert isinstance(frd_value, (float, np.floating)), \
-            f"FRD v1 should return a float, got {type(frd_value)}"
+        assert isinstance(
+            frd_value, (float, np.floating)
+        ), f"FRD v1 should return a float, got {type(frd_value)}"
 
     def test_frd_v1_2d_default_version(self, tmp_path):
         """Verify that not passing frd_version defaults to v1."""
@@ -139,8 +140,9 @@ class TestFRDv0_2D:
             verbose=True,
             save_features=True,
         )
-        assert os.path.exists(f"{path_a}/statistics_v0.npz"), \
-            "NPZ statistics file was not created."
+        assert os.path.exists(
+            f"{path_a}/statistics_v0.npz"
+        ), "NPZ statistics file was not created."
 
         # Test compute_frd with v0
         paths = [path_a, path_b]
@@ -158,8 +160,9 @@ class TestFRDv0_2D:
         self.logger.warning(f"FRD v0 2D value: {frd_value}")
         print(f"FRD v0 2D value: {frd_value}")
         # v0 returns raw Frechet distance (not log-transformed)
-        assert isinstance(frd_value, (float, np.floating)), \
-            f"FRD v0 should return a float, got {type(frd_value)}"
+        assert isinstance(
+            frd_value, (float, np.floating)
+        ), f"FRD v0 should return a float, got {type(frd_value)}"
 
 
 class TestFRDv0_3D:
@@ -219,8 +222,9 @@ class TestFRDv0_3D:
             norm_ref="independent",
         )
         self.logger.warning(f"FRD v0 3D different images: {frd_value}")
-        assert frd_value != 0.0, \
-            f"FRD 3D should not be 0 for different images. Got: {frd_value}"
+        assert (
+            frd_value != 0.0
+        ), f"FRD 3D should not be 0 for different images. Got: {frd_value}"
 
         # Same distribution → FRD should be ~0
         paths = [path_a, path_a]
@@ -236,8 +240,9 @@ class TestFRDv0_3D:
             norm_ref="independent",
         )
         self.logger.warning(f"FRD v0 3D identical datasets: {frd_value}")
-        assert abs(frd_value) < 0.001, \
-            f"FRD should be ~0 for identical distributions. Got: {frd_value}"
+        assert (
+            abs(frd_value) < 0.001
+        ), f"FRD should be ~0 for identical distributions. Got: {frd_value}"
 
         # --- Test with masks ---
         # Guarantee non-empty masks by using fixed, known-good regions
@@ -275,8 +280,9 @@ class TestFRDv0_3D:
             num_workers=1,
         )
         self.logger.warning(f"FRD v0 3D with masks: {frd_value}")
-        assert frd_value > 1.0, \
-            f"FRD 3D with different masks should be >1.0. Got: {frd_value}"
+        assert (
+            frd_value > 1.0
+        ), f"FRD 3D with different masks should be >1.0. Got: {frd_value}"
 
         # Different images, different masks → non-zero
         paths = [path_a, path_b]
@@ -291,8 +297,9 @@ class TestFRDv0_3D:
             save_features=False,
             norm_ref="joint",
         )
-        assert frd_value != 0.0, \
-            f"FRD 3D with different masks should not be 0. Got: {frd_value}"
+        assert (
+            frd_value != 0.0
+        ), f"FRD 3D with different masks should not be 0. Got: {frd_value}"
 
         # List-of-paths mode
         paths = [
@@ -314,8 +321,9 @@ class TestFRDv0_3D:
             save_features=False,
             norm_ref="joint",
         )
-        assert frd_value != 0.0, \
-            f"FRD 3D with list-of-paths should not be 0. Got: {frd_value}"
+        assert (
+            frd_value != 0.0
+        ), f"FRD 3D with list-of-paths should not be 0. Got: {frd_value}"
 
 
 class TestFRDv1_3D:
@@ -371,8 +379,9 @@ class TestFRDv1_3D:
         )
         self.logger.warning(f"FRD v1 3D value: {frd_value}")
         print(f"FRD v1 3D value: {frd_value}")
-        assert isinstance(frd_value, (float, np.floating)), \
-            f"FRD v1 should return a float, got {type(frd_value)}"
+        assert isinstance(
+            frd_value, (float, np.floating)
+        ), f"FRD v1 should return a float, got {type(frd_value)}"
 
 
 class TestUnifiedParams:
@@ -386,13 +395,17 @@ class TestUnifiedParams:
             arr = np.random.rand(64, 64) * 255
             Image.fromarray(arr.astype(np.uint8), mode="L").save(f"{path_a}/img{i}.png")
             arr2 = np.random.rand(64, 64) * 255
-            Image.fromarray(arr2.astype(np.uint8), mode="L").save(f"{path_b}/img{i}.png")
+            Image.fromarray(arr2.astype(np.uint8), mode="L").save(
+                f"{path_b}/img{i}.png"
+            )
 
     # ── feature_groups on v1 ──────────────────────────────────────────────────
 
     def test_v1_with_feature_groups(self, tmp_path):
         """v1 should accept --feature_groups to restrict which feature classes are extracted."""
-        path_a, path_b = str(tmp_path / "tmp_unified_fg_a"), str(tmp_path / "tmp_unified_fg_b")
+        path_a, path_b = str(tmp_path / "tmp_unified_fg_a"), str(
+            tmp_path / "tmp_unified_fg_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         # Restrict v1 to only firstorder + glcm (fewer features → faster, different value)
@@ -408,7 +421,9 @@ class TestUnifiedParams:
 
     def test_v1_feature_groups_adds_missing_class(self, tmp_path):
         """v1 YAML doesn't include gldm by default — feature_groups should enable it."""
-        path_a, path_b = str(tmp_path / "tmp_unified_fg2_a"), str(tmp_path / "tmp_unified_fg2_b")
+        path_a, path_b = str(tmp_path / "tmp_unified_fg2_a"), str(
+            tmp_path / "tmp_unified_fg2_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         frd_value = frd.compute_frd(
@@ -425,7 +440,9 @@ class TestUnifiedParams:
 
     def test_v0_with_wavelet_image_types(self, tmp_path):
         """v0 should be able to use Wavelet image type (a v1 feature) via image_types."""
-        path_a, path_b = str(tmp_path / "tmp_unified_it_a"), str(tmp_path / "tmp_unified_it_b")
+        path_a, path_b = str(tmp_path / "tmp_unified_it_a"), str(
+            tmp_path / "tmp_unified_it_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         frd_value = frd.compute_frd(
@@ -440,7 +457,9 @@ class TestUnifiedParams:
 
     def test_v0_with_log_image_type(self, tmp_path):
         """v0 should be able to use LoG image type via image_types."""
-        path_a, path_b = str(tmp_path / "tmp_unified_log_a"), str(tmp_path / "tmp_unified_log_b")
+        path_a, path_b = str(tmp_path / "tmp_unified_log_a"), str(
+            tmp_path / "tmp_unified_log_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         frd_value = frd.compute_frd(
@@ -457,7 +476,9 @@ class TestUnifiedParams:
 
     def test_v1_restrict_to_original_only(self, tmp_path):
         """v1 should be able to restrict to Original-only via image_types."""
-        path_a, path_b = str(tmp_path / "tmp_unified_v1orig_a"), str(tmp_path / "tmp_unified_v1orig_b")
+        path_a, path_b = str(tmp_path / "tmp_unified_v1orig_a"), str(
+            tmp_path / "tmp_unified_v1orig_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         frd_value = frd.compute_frd(
@@ -474,8 +495,12 @@ class TestUnifiedParams:
 
     def test_v1_with_masks(self, tmp_path):
         """v1 should fully support mask paths (originally a v0 feature)."""
-        path_a, path_b = str(tmp_path / "tmp_unified_mask_a"), str(tmp_path / "tmp_unified_mask_b")
-        mask_a, mask_b = str(tmp_path / "tmp_unified_mask_a_m"), str(tmp_path / "tmp_unified_mask_b_m")
+        path_a, path_b = str(tmp_path / "tmp_unified_mask_a"), str(
+            tmp_path / "tmp_unified_mask_b"
+        )
+        mask_a, mask_b = str(tmp_path / "tmp_unified_mask_a_m"), str(
+            tmp_path / "tmp_unified_mask_b_m"
+        )
         self._make_2d_images(path_a, path_b, n=2)
 
         # Create mask images (white rectangle in center)
@@ -508,12 +533,18 @@ class TestPaperLogTransform:
         for i in range(n):
             arr_a = np.random.rand(size, size) * 255
             arr_b = np.random.rand(size, size) * 255
-            Image.fromarray(arr_a.astype(np.uint8), mode="L").save(f"{path_a}/img{i}.png")
-            Image.fromarray(arr_b.astype(np.uint8), mode="L").save(f"{path_b}/img{i}.png")
+            Image.fromarray(arr_a.astype(np.uint8), mode="L").save(
+                f"{path_a}/img{i}.png"
+            )
+            Image.fromarray(arr_b.astype(np.uint8), mode="L").save(
+                f"{path_b}/img{i}.png"
+            )
 
     def test_v1_default_log_is_code_convention(self, tmp_path):
         """Default v1 FRD should use log(d_F^2) (original code convention)."""
-        path_a, path_b = str(tmp_path / "tmp_paperlog_def_a"), str(tmp_path / "tmp_paperlog_def_b")
+        path_a, path_b = str(tmp_path / "tmp_paperlog_def_a"), str(
+            tmp_path / "tmp_paperlog_def_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         frd_default = frd.compute_frd(
@@ -527,7 +558,9 @@ class TestPaperLogTransform:
 
     def test_v1_paper_log_is_half_of_default(self, tmp_path):
         """Paper formula log(sqrt(d^2)) should equal 0.5 * log(d^2)."""
-        path_a, path_b = str(tmp_path / "tmp_paperlog_half_a"), str(tmp_path / "tmp_paperlog_half_b")
+        path_a, path_b = str(tmp_path / "tmp_paperlog_half_a"), str(
+            tmp_path / "tmp_paperlog_half_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         import warnings
@@ -556,13 +589,15 @@ class TestPaperLogTransform:
 
         print(f"FRD default: {frd_default}, FRD paper: {frd_paper}")
         # Paper formula = 0.5 * default
-        assert np.isclose(frd_paper, 0.5 * frd_default, rtol=1e-10), (
-            f"Expected frd_paper ({frd_paper}) ≈ 0.5 * frd_default ({0.5 * frd_default})"
-        )
+        assert np.isclose(
+            frd_paper, 0.5 * frd_default, rtol=1e-10
+        ), f"Expected frd_paper ({frd_paper}) ≈ 0.5 * frd_default ({0.5 * frd_default})"
 
     def test_v0_unaffected_by_paper_log(self, tmp_path):
         """v0 should return the same value regardless of use_paper_log."""
-        path_a, path_b = str(tmp_path / "tmp_paperlog_v0_a"), str(tmp_path / "tmp_paperlog_v0_b")
+        path_a, path_b = str(tmp_path / "tmp_paperlog_v0_a"), str(
+            tmp_path / "tmp_paperlog_v0_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         frd_default = frd.compute_frd(
@@ -596,17 +631,24 @@ class TestNormRef:
         for i in range(n):
             arr_a = np.random.rand(size, size) * 255
             arr_b = np.random.rand(size, size) * 255
-            Image.fromarray(arr_a.astype(np.uint8), mode="L").save(f"{path_a}/img{i}.png")
-            Image.fromarray(arr_b.astype(np.uint8), mode="L").save(f"{path_b}/img{i}.png")
+            Image.fromarray(arr_a.astype(np.uint8), mode="L").save(
+                f"{path_a}/img{i}.png"
+            )
+            Image.fromarray(arr_b.astype(np.uint8), mode="L").save(
+                f"{path_b}/img{i}.png"
+            )
 
     def test_all_three_modes_produce_valid_results(self, tmp_path):
         """All norm_ref modes should produce valid float FRD values."""
-        path_a, path_b = str(tmp_path / "tmp_normref_modes_a"), str(tmp_path / "tmp_normref_modes_b")
+        path_a, path_b = str(tmp_path / "tmp_normref_modes_a"), str(
+            tmp_path / "tmp_normref_modes_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         results = {}
         for mode in ["joint", "d1", "independent"]:
             import warnings
+
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 frd_value = frd.compute_frd(
@@ -618,17 +660,21 @@ class TestNormRef:
                 )
             results[mode] = frd_value
             print(f"FRD v1 norm_ref={mode}: {frd_value}")
-            assert isinstance(frd_value, (float, np.floating)), \
-                f"norm_ref={mode} should return a float, got {type(frd_value)}"
+            assert isinstance(
+                frd_value, (float, np.floating)
+            ), f"norm_ref={mode} should return a float, got {type(frd_value)}"
         # All three modes may produce different values (normalization base differs)
         print(f"All norm_ref mode results: {results}")
 
     def test_independent_mode_warns(self, tmp_path):
         """norm_ref='independent' should emit a UserWarning."""
-        path_a, path_b = str(tmp_path / "tmp_normref_warn_a"), str(tmp_path / "tmp_normref_warn_b")
+        path_a, path_b = str(tmp_path / "tmp_normref_warn_a"), str(
+            tmp_path / "tmp_normref_warn_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         import warnings
+
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             frd.compute_frd(
@@ -638,19 +684,26 @@ class TestNormRef:
                 save_features=False,
                 norm_ref="independent",
             )
-            user_warnings = [x for x in w if issubclass(x.category, UserWarning)
-                             and "norm_ref='independent'" in str(x.message)]
-            assert len(user_warnings) >= 1, (
-                f"Expected a UserWarning about norm_ref='independent', got {w}"
-            )
+            user_warnings = [
+                x
+                for x in w
+                if issubclass(x.category, UserWarning)
+                and "norm_ref='independent'" in str(x.message)
+            ]
+            assert (
+                len(user_warnings) >= 1
+            ), f"Expected a UserWarning about norm_ref='independent', got {w}"
             assert "comparability" in str(user_warnings[0].message).lower()
 
     def test_joint_and_d1_no_warning(self, tmp_path):
         """norm_ref='joint' and 'd1' should NOT emit the independent-mode warning."""
-        path_a, path_b = str(tmp_path / "tmp_normref_nowarn_a"), str(tmp_path / "tmp_normref_nowarn_b")
+        path_a, path_b = str(tmp_path / "tmp_normref_nowarn_a"), str(
+            tmp_path / "tmp_normref_nowarn_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         import warnings
+
         for mode in ["joint", "d1"]:
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
@@ -661,8 +714,12 @@ class TestNormRef:
                     save_features=False,
                     norm_ref=mode,
                 )
-                indep_warnings = [x for x in w if issubclass(x.category, UserWarning)
-                                  and "norm_ref='independent'" in str(x.message)]
+                indep_warnings = [
+                    x
+                    for x in w
+                    if issubclass(x.category, UserWarning)
+                    and "norm_ref='independent'" in str(x.message)
+                ]
                 assert len(indep_warnings) == 0, (
                     f"norm_ref='{mode}' should not emit independent-mode warning, "
                     f"but got: {indep_warnings}"
@@ -679,6 +736,7 @@ class TestNormRef:
         self._make_2d_images(path_a, path_b)
 
         import warnings
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # Same distribution -> d1 base == joint base -> results should match
@@ -705,10 +763,13 @@ class TestNormRef:
 
     def test_invalid_norm_ref_raises(self, tmp_path):
         """An invalid norm_ref value should raise ValueError."""
-        path_a, path_b = str(tmp_path / "tmp_normref_invalid_a"), str(tmp_path / "tmp_normref_invalid_b")
+        path_a, path_b = str(tmp_path / "tmp_normref_invalid_a"), str(
+            tmp_path / "tmp_normref_invalid_b"
+        )
         self._make_2d_images(path_a, path_b)
 
         import pytest
+
         with pytest.raises(ValueError, match="Unknown norm_ref"):
             frd.compute_frd(
                 [path_a, path_b],
@@ -734,14 +795,20 @@ class TestNewParams:
         for i in range(n):
             arr_a = np.random.rand(size, size) * 255
             arr_b = np.random.rand(size, size) * 255
-            Image.fromarray(arr_a.astype(np.uint8), mode="L").save(f"{path_a}/img{i}.png")
-            Image.fromarray(arr_b.astype(np.uint8), mode="L").save(f"{path_b}/img{i}.png")
+            Image.fromarray(arr_a.astype(np.uint8), mode="L").save(
+                f"{path_a}/img{i}.png"
+            )
+            Image.fromarray(arr_b.astype(np.uint8), mode="L").save(
+                f"{path_b}/img{i}.png"
+            )
 
     # ── log_sigma ──
 
     def test_log_sigma_custom(self, tmp_path):
         """Custom log_sigma values should produce valid FRD."""
-        path_a, path_b = str(tmp_path / "tmp_logsigma_a"), str(tmp_path / "tmp_logsigma_b")
+        path_a, path_b = str(tmp_path / "tmp_logsigma_a"), str(
+            tmp_path / "tmp_logsigma_b"
+        )
         self._make_2d_images(path_a, path_b)
         frd_val = frd.compute_frd(
             [path_a, path_b],
@@ -757,7 +824,9 @@ class TestNewParams:
 
     def test_bin_width(self, tmp_path):
         """Custom bin_width should produce valid FRD."""
-        path_a, path_b = str(tmp_path / "tmp_binwidth_a"), str(tmp_path / "tmp_binwidth_b")
+        path_a, path_b = str(tmp_path / "tmp_binwidth_a"), str(
+            tmp_path / "tmp_binwidth_b"
+        )
         self._make_2d_images(path_a, path_b)
         frd_val = frd.compute_frd(
             [path_a, path_b],
@@ -773,7 +842,9 @@ class TestNewParams:
 
     def test_normalize_scale_and_voxel_array_shift(self, tmp_path):
         """Custom normalize_scale and voxel_array_shift should produce valid FRD."""
-        path_a, path_b = str(tmp_path / "tmp_normscale_a"), str(tmp_path / "tmp_normscale_b")
+        path_a, path_b = str(tmp_path / "tmp_normscale_a"), str(
+            tmp_path / "tmp_normscale_b"
+        )
         self._make_2d_images(path_a, path_b)
         frd_val = frd.compute_frd(
             [path_a, path_b],
@@ -790,7 +861,9 @@ class TestNewParams:
 
     def test_resize_size_tuple(self, tmp_path):
         """resize_size as (w, h) tuple should work."""
-        path_a, path_b = str(tmp_path / "tmp_resize_tuple_a"), str(tmp_path / "tmp_resize_tuple_b")
+        path_a, path_b = str(tmp_path / "tmp_resize_tuple_a"), str(
+            tmp_path / "tmp_resize_tuple_b"
+        )
         self._make_2d_images(path_a, path_b, size=128)
         frd_val = frd.compute_frd(
             [path_a, path_b],
@@ -809,6 +882,7 @@ class TestNewParams:
         path_a, path_b = str(tmp_path / "tmp_means_a"), str(tmp_path / "tmp_means_b")
         self._make_2d_images(path_a, path_b)
         import warnings
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             frd_full = frd.compute_frd(
@@ -828,15 +902,17 @@ class TestNewParams:
         assert isinstance(frd_means, (float, np.floating))
         print(f"FRD full: {frd_full}, means_only: {frd_means}")
         # means_only should generally give a smaller or equal value
-        assert frd_means <= frd_full + 1e-6, (
-            f"means_only should not exceed full FRD. Got means={frd_means}, full={frd_full}"
-        )
+        assert (
+            frd_means <= frd_full + 1e-6
+        ), f"means_only should not exceed full FRD. Got means={frd_means}, full={frd_full}"
 
     # ── exclude_features ──
 
     def test_exclude_features(self, tmp_path):
         """Excluding feature categories should still produce valid results."""
-        path_a, path_b = str(tmp_path / "tmp_exclude_a"), str(tmp_path / "tmp_exclude_b")
+        path_a, path_b = str(tmp_path / "tmp_exclude_a"), str(
+            tmp_path / "tmp_exclude_b"
+        )
         self._make_2d_images(path_a, path_b)
         frd_val = frd.compute_frd(
             [path_a, path_b],
@@ -852,7 +928,9 @@ class TestNewParams:
 
     def test_match_sample_count(self, tmp_path):
         """match_sample_count should subsample larger set and produce valid FRD."""
-        path_a, path_b = str(tmp_path / "tmp_matchcount_a"), str(tmp_path / "tmp_matchcount_b")
+        path_a, path_b = str(tmp_path / "tmp_matchcount_a"), str(
+            tmp_path / "tmp_matchcount_b"
+        )
         self._make_2d_images(path_a, path_b, n=3)
         # Add extra images to path_b to make it larger
         for i in range(3, 6):
@@ -872,7 +950,9 @@ class TestNewParams:
 
     def test_settings_dict(self, tmp_path):
         """settings_dict should pass through to the extractor."""
-        path_a, path_b = str(tmp_path / "tmp_settingsdict_a"), str(tmp_path / "tmp_settingsdict_b")
+        path_a, path_b = str(tmp_path / "tmp_settingsdict_a"), str(
+            tmp_path / "tmp_settingsdict_b"
+        )
         self._make_2d_images(path_a, path_b)
         frd_val = frd.compute_frd(
             [path_a, path_b],
@@ -889,6 +969,7 @@ class TestNewParams:
     def test_save_features_default_false(self):
         """compute_frd save_features should default to False."""
         import inspect
+
         sig = inspect.signature(frd.compute_frd)
         default = sig.parameters["save_features"].default
         assert default is False, f"Expected save_features default=False, got {default}"
@@ -896,6 +977,7 @@ class TestNewParams:
     def test_save_frd_stats_save_features_default_false(self):
         """save_frd_stats save_features should default to False."""
         import inspect
+
         sig = inspect.signature(frd.save_frd_stats)
         default = sig.parameters["save_features"].default
         assert default is False, f"Expected save_features default=False, got {default}"
@@ -905,7 +987,12 @@ class TestExcludeFeatures:
     """Tests for the _apply_exclude_features helper."""
 
     def test_exclude_textural(self):
-        names = ["firstorder_Mean", "glcm_Contrast", "glrlm_RunEntropy", "shape_Elongation"]
+        names = [
+            "firstorder_Mean",
+            "glcm_Contrast",
+            "glrlm_RunEntropy",
+            "shape_Elongation",
+        ]
         arrs = [np.random.rand(5, len(names))]
         filtered, fnames = frd._apply_exclude_features(arrs, names, ["textural"])
         assert "glcm_Contrast" not in fnames
@@ -914,7 +1001,11 @@ class TestExcludeFeatures:
         assert "shape_Elongation" in fnames
 
     def test_exclude_wavelet(self):
-        names = ["firstorder_Mean", "wavelet-LLH_glcm_Contrast", "wavelet-HHL_firstorder_Mean"]
+        names = [
+            "firstorder_Mean",
+            "wavelet-LLH_glcm_Contrast",
+            "wavelet-HHL_firstorder_Mean",
+        ]
         arrs = [np.random.rand(5, len(names))]
         filtered, fnames = frd._apply_exclude_features(arrs, names, ["wavelet"])
         assert len(fnames) == 1
@@ -927,7 +1018,12 @@ class TestExcludeFeatures:
         assert all("firstorder" not in n for n in fnames)
 
     def test_exclude_shape(self):
-        names = ["firstorder_Mean", "shape_Elongation", "shape2D_Perimeter", "glcm_Contrast"]
+        names = [
+            "firstorder_Mean",
+            "shape_Elongation",
+            "shape2D_Perimeter",
+            "glcm_Contrast",
+        ]
         arrs = [np.random.rand(5, len(names))]
         filtered, fnames = frd._apply_exclude_features(arrs, names, ["shape"])
         assert "shape_Elongation" not in fnames
@@ -979,7 +1075,9 @@ class TestMeansOnly:
         mu = np.array([1.0, 2.0, 3.0])
         sigma = np.eye(3)
         val = frd.calculate_frechet_distance(mu, sigma, mu, sigma, means_only=True)
-        assert np.isclose(val, 0.0), f"Expected 0 for identical distributions, got {val}"
+        assert np.isclose(
+            val, 0.0
+        ), f"Expected 0 for identical distributions, got {val}"
 
     def test_means_only_less_than_full(self):
         """means_only distance should be <= full Fréchet distance."""
@@ -987,8 +1085,12 @@ class TestMeansOnly:
         mu2 = np.array([3.0, 4.0])
         sigma1 = np.array([[1.0, 0.5], [0.5, 2.0]])
         sigma2 = np.array([[2.0, 0.3], [0.3, 1.0]])
-        full = frd.calculate_frechet_distance(mu1, sigma1, mu2, sigma2, means_only=False)
-        means = frd.calculate_frechet_distance(mu1, sigma1, mu2, sigma2, means_only=True)
+        full = frd.calculate_frechet_distance(
+            mu1, sigma1, mu2, sigma2, means_only=False
+        )
+        means = frd.calculate_frechet_distance(
+            mu1, sigma1, mu2, sigma2, means_only=True
+        )
         assert means <= full + 1e-10, f"means_only ({means}) > full ({full})"
 
 
@@ -1001,6 +1103,7 @@ class TestInterpretFrd:
             import matplotlib
         except ImportError:
             import pytest
+
             pytest.skip("matplotlib not installed")
 
         feats1 = np.random.rand(20, 10)
@@ -1008,7 +1111,9 @@ class TestInterpretFrd:
         names = [f"feature_{i}" for i in range(10)]
         viz_dir = str(tmp_path / "tmp_interpret_output")
 
-        results = frd.interpret_frd([feats1, feats2], names, viz_dir=viz_dir, run_tsne=False)
+        results = frd.interpret_frd(
+            [feats1, feats2], names, viz_dir=viz_dir, run_tsne=False
+        )
         assert "top_changed_features" in results
         assert "n_features" in results
         assert results["n_features"] == 10
@@ -1043,6 +1148,7 @@ class TestDetectOod:
             from sklearn.metrics import roc_auc_score
         except ImportError:
             import pytest
+
             pytest.skip("scikit-learn not installed")
 
         ref = np.random.rand(50, 10)
@@ -1061,6 +1167,7 @@ class TestDetectOod:
     def test_invalid_detection_type_raises(self):
         """Invalid detection_type should raise ValueError."""
         import pytest
+
         ref = np.random.rand(10, 5)
         test = np.random.rand(10, 5)
         with pytest.raises(ValueError, match="detection_type must be"):
@@ -1131,7 +1238,13 @@ class TestDetectOod:
         """Filenames should appear in CSV output when provided."""
         ref = np.random.rand(30, 10)
         test = np.random.rand(5, 10)
-        filenames = ["img_001.png", "img_002.png", "img_003.png", "img_004.png", "img_005.png"]
+        filenames = [
+            "img_001.png",
+            "img_002.png",
+            "img_003.png",
+            "img_004.png",
+            "img_005.png",
+        ]
         output_dir = str(tmp_path / "tmp_ood_filenames")
 
         frd.detect_ood(
@@ -1144,6 +1257,7 @@ class TestDetectOod:
         csv_path = os.path.join(output_dir, "ood_predictions.csv")
         assert os.path.exists(csv_path)
         import csv as csv_mod
+
         with open(csv_path, "r") as f:
             reader = csv_mod.reader(f)
             header = next(reader)
@@ -1167,6 +1281,7 @@ class TestDetectOod:
         )
         csv_path = os.path.join(output_dir, "ood_predictions.csv")
         import csv as csv_mod
+
         with open(csv_path, "r") as f:
             reader = csv_mod.reader(f)
             header = next(reader)
@@ -1254,22 +1369,31 @@ class TestEquivalenceV0:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         for i in range(n):
             arr = rng.rand(size, size) * 255
-            Image.fromarray(arr.astype(np.uint8), mode="L").save(f"{out_dir}/img_{i:03d}.png")
+            Image.fromarray(arr.astype(np.uint8), mode="L").save(
+                f"{out_dir}/img_{i:03d}.png"
+            )
 
     def test_merged_v0_equals_original_v0(self, tmp_path):
         """Core equivalence test: merged v0 must match original v0 exactly."""
         import pytest
+
         try:
             from frd_v0.src.frd_score import frd as frd_v0_original
         except ImportError:
-            pytest.skip("Original frd_v0 not available (removed from repo; check git history)")
+            pytest.skip(
+                "Original frd_v0 not available (removed from repo; check git history)"
+            )
 
         path_a = str(tmp_path / "tmp_equiv_v0_a")
         path_b = str(tmp_path / "tmp_equiv_v0_b")
 
         # Generate identical synthetic images using fixed seeds
-        self._make_synthetic_distribution(path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42)
-        self._make_synthetic_distribution(path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123)
+        self._make_synthetic_distribution(
+            path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42
+        )
+        self._make_synthetic_distribution(
+            path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123
+        )
 
         # Run original v0
         frd_original = frd_v0_original.compute_frd(
@@ -1309,11 +1433,15 @@ class TestEquivalenceV0:
         """Verify that merged v0 defaults (norm_type, norm_range, norm_ref, features)
         match the original v0 defaults exactly."""
         import inspect
+
         import pytest
+
         try:
             from frd_v0.src.frd_score import frd as frd_v0_original
         except ImportError:
-            pytest.skip("Original frd_v0 not available (removed from repo; check git history)")
+            pytest.skip(
+                "Original frd_v0 not available (removed from repo; check git history)"
+            )
 
         # Original v0 defaults
         orig_sig = inspect.signature(frd_v0_original.compute_frd)
@@ -1327,21 +1455,23 @@ class TestEquivalenceV0:
             "v0", None, None, None, None
         )
 
-        assert features == list(orig_features), (
-            f"Features mismatch: merged={features}, original={orig_features}"
-        )
-        assert norm_type == orig_norm_type, (
-            f"norm_type mismatch: merged={norm_type}, original={orig_norm_type}"
-        )
-        assert norm_range == list(orig_norm_range), (
-            f"norm_range mismatch: merged={norm_range}, original={orig_norm_range}"
-        )
+        assert features == list(
+            orig_features
+        ), f"Features mismatch: merged={features}, original={orig_features}"
+        assert (
+            norm_type == orig_norm_type
+        ), f"norm_type mismatch: merged={norm_type}, original={orig_norm_type}"
+        assert norm_range == list(
+            orig_norm_range
+        ), f"norm_range mismatch: merged={norm_range}, original={orig_norm_range}"
         # Original v0's norm_sets_separately=True maps to "joint"
         assert orig_norm_sets_separately is True
-        assert norm_ref == "joint", (
-            f"norm_ref mismatch: merged={norm_ref}, expected 'joint' (= orig norm_sets_separately=True)"
+        assert (
+            norm_ref == "joint"
+        ), f"norm_ref mismatch: merged={norm_ref}, expected 'joint' (= orig norm_sets_separately=True)"
+        print(
+            f"All v0 defaults match: features={features}, norm_type={norm_type}, norm_range={norm_range}, norm_ref={norm_ref}"
         )
-        print(f"All v0 defaults match: features={features}, norm_type={norm_type}, norm_range={norm_range}, norm_ref={norm_ref}")
 
 
 class TestEquivalenceV1:
@@ -1366,7 +1496,9 @@ class TestEquivalenceV1:
     when N is not divisible by num_workers.
     """
 
-    N_IMAGES = 24  # divisible by 8 to avoid original v1's parallelization truncation bug
+    N_IMAGES = (
+        24  # divisible by 8 to avoid original v1's parallelization truncation bug
+    )
     IMAGE_SIZE = 64
 
     @staticmethod
@@ -1375,7 +1507,9 @@ class TestEquivalenceV1:
         Path(out_dir).mkdir(parents=True, exist_ok=True)
         for i in range(n):
             arr = rng.rand(size, size) * 255
-            Image.fromarray(arr.astype(np.uint8), mode="L").save(f"{out_dir}/img_{i:03d}.png")
+            Image.fromarray(arr.astype(np.uint8), mode="L").save(
+                f"{out_dir}/img_{i:03d}.png"
+            )
 
     def test_merged_v1_defaults_match_original(self):
         """Verify that merged v1 defaults match original v1's normalization behavior.
@@ -1396,14 +1530,20 @@ class TestEquivalenceV1:
         # v1 z-score range: with new_min=0, new_max=1, the formula becomes
         # ((x-mean)/std) * (1-0) + 0 = (x-mean)/std, which is pure z-score.
         assert norm_range == [0.0, 1.0], f"Expected [0.0, 1.0], got {norm_range}"
-        print(f"v1 defaults: norm_type={norm_type}, norm_ref={norm_ref}, norm_range={norm_range}")
+        print(
+            f"v1 defaults: norm_type={norm_type}, norm_ref={norm_ref}, norm_range={norm_range}"
+        )
 
     def test_merged_v1_produces_valid_frd(self, tmp_path):
         """Merged v1 with defaults should produce a valid log-transformed FRD."""
         path_a = str(tmp_path / "tmp_equiv_v1_valid_a")
         path_b = str(tmp_path / "tmp_equiv_v1_valid_b")
-        self._make_synthetic_distribution(path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42)
-        self._make_synthetic_distribution(path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123)
+        self._make_synthetic_distribution(
+            path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42
+        )
+        self._make_synthetic_distribution(
+            path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123
+        )
 
         frd_val = frd.compute_frd(
             [path_a, path_b],
@@ -1429,33 +1569,47 @@ class TestEquivalenceV1:
         epsilon (~1.2e-7).
         """
         import pytest
-        pytest.skip("Original frd_v1 not available (removed from repo; check git history)")
+
+        pytest.skip(
+            "Original frd_v1 not available (removed from repo; check git history)"
+        )
 
         # Use absolute paths so they work regardless of CWD
         path_a = str(tmp_path / "tmp_equiv_v1_e2e_a")
         path_b = str(tmp_path / "tmp_equiv_v1_e2e_b")
-        self._make_synthetic_distribution(path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42)
-        self._make_synthetic_distribution(path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123)
+        self._make_synthetic_distribution(
+            path_a, self.N_IMAGES, self.IMAGE_SIZE, seed=42
+        )
+        self._make_synthetic_distribution(
+            path_b, self.N_IMAGES, self.IMAGE_SIZE, seed=123
+        )
 
         # ── Run original v1 pipeline ──
         # The original v1 uses a relative YAML path (configs/2D_extraction.yaml),
         # so we must cd into the frd_v1 directory for it to resolve correctly.
         original_cwd = os.getcwd()
-        frd_v1_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'frd_v1')
+        frd_v1_dir = os.path.join(os.path.dirname(__file__), "..", "..", "frd_v1")
         os.chdir(frd_v1_dir)
         try:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
-                compute_and_save_imagefolder_radiomics_parallel(path_a, radiomics_fname='radiomics.csv')
-                compute_and_save_imagefolder_radiomics_parallel(path_b, radiomics_fname='radiomics.csv')
+                compute_and_save_imagefolder_radiomics_parallel(
+                    path_a, radiomics_fname="radiomics.csv"
+                )
+                compute_and_save_imagefolder_radiomics_parallel(
+                    path_b, radiomics_fname="radiomics.csv"
+                )
         finally:
             os.chdir(original_cwd)
 
-        radiomics_df1 = pd.read_csv(os.path.join(path_a, 'radiomics.csv'))
-        radiomics_df2 = pd.read_csv(os.path.join(path_b, 'radiomics.csv'))
+        radiomics_df1 = pd.read_csv(os.path.join(path_a, "radiomics.csv"))
+        radiomics_df2 = pd.read_csv(os.path.join(path_b, "radiomics.csv"))
 
         feats1, feats2 = convert_radiomic_dfs_to_vectors(
-            radiomics_df1, radiomics_df2, match_sample_count=True, normalize=True,
+            radiomics_df1,
+            radiomics_df2,
+            match_sample_count=True,
+            normalize=True,
         )
         fd = v1_frechet_distance(feats1, feats2)
         frd_original_v1 = np.log(fd)
@@ -1491,9 +1645,13 @@ class TestEquivalenceV1:
 
     def test_explicit_norm_ref_overrides_default(self):
         """Explicitly passed norm_ref should override the version default."""
-        _, _, _, _, norm_ref = frd._resolve_defaults("v1", None, None, None, None, norm_ref="joint")
+        _, _, _, _, norm_ref = frd._resolve_defaults(
+            "v1", None, None, None, None, norm_ref="joint"
+        )
         assert norm_ref == "joint"
-        _, _, _, _, norm_ref = frd._resolve_defaults("v0", None, None, None, None, norm_ref="d1")
+        _, _, _, _, norm_ref = frd._resolve_defaults(
+            "v0", None, None, None, None, norm_ref="d1"
+        )
         assert norm_ref == "d1"
 
 
@@ -1521,6 +1679,7 @@ class TestMedicalImages2D:
     @staticmethod
     def _skip_if_missing():
         import pytest
+
         if not _HAS_MEDICAL:
             pytest.skip("Medical image fixtures not found in tests/data/medical_2d")
 
@@ -1706,8 +1865,8 @@ class TestPyradiomicsCompat:
     def test_radiomics_imports(self):
         """Core radiomics modules should be importable."""
         import radiomics
-        from radiomics import featureextractor
-        from radiomics import setVerbosity
+        from radiomics import featureextractor, setVerbosity
+
         assert hasattr(featureextractor, "RadiomicsFeatureExtractor")
 
     def test_radiomics_version_not_broken_pypi(self):
@@ -1717,6 +1876,7 @@ class TestPyradiomicsCompat:
         We require installation from GitHub master (>=3.1.1dev).
         """
         import radiomics
+
         version = radiomics.__version__
         broken_versions = {"3.0.1a3", "3.1.0"}
         assert version not in broken_versions, (
@@ -1727,6 +1887,7 @@ class TestPyradiomicsCompat:
     def test_radiomics_version_is_dev(self):
         """Installed version should be a dev build from GitHub master (contains 'dev')."""
         import radiomics
+
         version = radiomics.__version__
         assert "dev" in version or "+" in version, (
             f"Expected a dev/GitHub build of pyradiomics, got '{version}'. "
@@ -1736,6 +1897,7 @@ class TestPyradiomicsCompat:
     def test_python_version_supported(self):
         """Python version should be >=3.10 (as declared in setup.py python_requires)."""
         import sys
+
         assert sys.version_info >= (3, 10), (
             f"Python {sys.version_info.major}.{sys.version_info.minor} is not supported. "
             "frd-score requires Python >=3.10."
@@ -1780,11 +1942,14 @@ class TestPyradiomicsCompat:
         extractor = frd.get_feature_extractor(frd_version="v1", image_dim=2)
         enabled = set(extractor.enabledFeatures.keys())
         expected = {"firstorder", "glcm", "glrlm", "glszm", "ngtdm"}
-        assert expected == enabled, f"Expected feature classes {expected}, got {enabled}"
+        assert (
+            expected == enabled
+        ), f"Expected feature classes {expected}, got {enabled}"
 
     def test_v0_single_image_extraction(self):
         """v0 extractor should successfully extract features from a single synthetic image."""
         import SimpleITK as sitk
+
         np.random.seed(42)
         arr = np.random.randint(0, 256, (64, 64), dtype=np.uint8)
         mask = np.ones_like(arr, dtype=np.uint8)
@@ -1807,6 +1972,7 @@ class TestPyradiomicsCompat:
         Exercises the full import chain incl. C extensions.
         """
         import SimpleITK as sitk
+
         np.random.seed(42)
         # 2D image expanded to 3D (single slice) for pyradiomics
         arr = np.random.randint(0, 256, (1, 64, 64), dtype=np.uint8)
@@ -1823,9 +1989,9 @@ class TestPyradiomicsCompat:
 
         feature_keys = [k for k in result.keys() if not k.startswith("diagnostics_")]
         # v1 with Original+LoG+Wavelet should produce hundreds of features
-        assert len(feature_keys) > 100, (
-            f"Expected >100 features from v1 extraction, got {len(feature_keys)}"
-        )
+        assert (
+            len(feature_keys) > 100
+        ), f"Expected >100 features from v1 extraction, got {len(feature_keys)}"
 
     def test_import_guard_message(self):
         """The import guard in frd.py should produce a helpful error message.
@@ -1834,6 +2000,7 @@ class TestPyradiomicsCompat:
         but we verify the guard code path exists by checking the source.
         """
         import inspect
+
         source = inspect.getsource(frd)
         assert "pyradiomics is not installed or failed to import" in source
         assert "github.com/AIM-Harvard/pyradiomics/issues/903" in source
@@ -1860,9 +2027,9 @@ class TestPyradiomicsCompat:
             log_sigma=custom_sigma,
         )
         log_cfg = extractor.enabledImagetypes.get("LoG", {})
-        assert log_cfg.get("sigma") == custom_sigma, (
-            f"Expected LoG sigma={custom_sigma}, got {log_cfg.get('sigma')}"
-        )
+        assert (
+            log_cfg.get("sigma") == custom_sigma
+        ), f"Expected LoG sigma={custom_sigma}, got {log_cfg.get('sigma')}"
 
     def test_image_types_override(self):
         """Overriding image_types should limit enabled types to the specified set."""
@@ -1882,4 +2049,7 @@ class TestPyradiomicsCompat:
             features=["firstorder", "glcm"],
         )
         enabled = set(extractor.enabledFeatures.keys())
-        assert enabled == {"firstorder", "glcm"}, f"Expected firstorder+glcm, got {enabled}"
+        assert enabled == {
+            "firstorder",
+            "glcm",
+        }, f"Expected firstorder+glcm, got {enabled}"
