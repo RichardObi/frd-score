@@ -1,0 +1,65 @@
+# FRDv1 3D feature extraction configuration for PyRadiomics.
+# Same feature space as the 2D config but without force2D, enabling native 3D feature extraction.
+# Reference: Konz, Osuala et al., "Fréchet Radiomic Distance (FRD)", Medical Image Analysis, 2026.
+
+imageType:
+  Original: {}
+  LoG:
+    sigma: [2.0, 3.0, 4.0, 5.0]
+  Wavelet: {}
+
+featureClass:
+  firstorder:
+  glcm:
+    - 'Autocorrelation'
+    - 'JointAverage'
+    - 'ClusterProminence'
+    - 'ClusterShade'
+    - 'ClusterTendency'
+    - 'Contrast'
+    - 'Correlation'
+    - 'DifferenceAverage'
+    - 'DifferenceEntropy'
+    - 'DifferenceVariance'
+    - 'JointEnergy'
+    - 'JointEntropy'
+    - 'Imc1'
+    - 'Imc2'
+    - 'Idm'
+    - 'Idmn'
+    - 'Id'
+    - 'Idn'
+    - 'InverseVariance'
+    - 'MaximumProbability'
+    - 'SumEntropy'
+    - 'SumSquares'
+  glrlm:
+  glszm:
+  ngtdm:
+
+setting:
+  # Normalization:
+  normalize: true
+  normalizeScale: 100
+
+  # Resampling (all three dimensions for 3D):
+  interpolator: 'sitkBSpline'
+  resampledPixelSpacing: [2, 2, 2]
+  padDistance: 10
+  preCrop: true
+
+  # 3D settings: no force2D, native 3D feature extraction
+  # (force2D is intentionally omitted for 3D processing)
+
+  # Image discretization:
+  binWidth: 5
+
+  # First order specific settings:
+  voxelArrayShift: 300
+
+  # Mask settings (for robustness):
+  correctMask: true
+  minimumROIDimensions: 1
+
+  # Misc:
+  label: 1

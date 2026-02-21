@@ -1,0 +1,28 @@
+/* ───────────────────────────────────────────────────────────────────────────
+ *  Custom colours — matched to the FRD project website
+ *  (https://richardobi.github.io/frd/)
+ *
+ *  Website palette:
+ *    --primary-color:   #1e40af  (indigo-800)
+ *    --secondary-color: #7c3aed  (violet-600)
+ *    --text-dark:       #1f2937  (gray-800)
+ *    --bg-light:        #f9fafb  (gray-50)
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+/* ── Light mode ─────────────────────────────────────────────────────────── */
+[data-md-color-scheme="default"] {
+    --md-primary-fg-color: #1e40af;
+    --md-primary-fg-color--light: #3b60c4;
+    --md-primary-fg-color--dark: #162f82;
+    --md-accent-fg-color: #7c3aed;
+    --md-accent-fg-color--transparent: rgba(124, 58, 237, 0.1);
+}
+
+/* ── Dark mode ──────────────────────────────────────────────────────────── */
+[data-md-color-scheme="slate"] {
+    --md-primary-fg-color: #3b60c4;
+    --md-primary-fg-color--light: #5b7fd6;
+    --md-primary-fg-color--dark: #1e40af;
+    --md-accent-fg-color: #a78bfa;
+    --md-accent-fg-color--transparent: rgba(167, 139, 250, 0.1);
+}
