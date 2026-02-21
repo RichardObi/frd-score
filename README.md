@@ -20,7 +20,7 @@
 
 
 <p align="center">
-  <img src="docs/assets/teaser.png" alt="FRD overview" width="75%">
+  <img src="https://raw.githubusercontent.com/RichardObi/frd-score/main/docs/assets/teaser.png" alt="FRD overview" width="75%">
 </p>
 
 **FRD** measures the similarity of [radiomic](https://pyradiomics.readthedocs.io/) image features between two datasets by computing the [Fréchet distance](https://en.wikipedia.org/wiki/Fr%C3%A9chet_distance) between Gaussians fitted to the extracted and normalized features. The lower the FRD, the more similar the two datasets.
@@ -28,7 +28,7 @@
 FRD supports both **2D** (PNG, JPG, TIFF, BMP) and **3D** (NIfTI `.nii.gz`) radiological images.
 
 <p align="center">
-  <img src="docs/assets/radiomics_taxonomy.jpg" alt="Radiomics feature taxonomy" width="75%">
+  <img src="https://raw.githubusercontent.com/RichardObi/frd-score/main/docs/assets/radiomics_taxonomy.jpg" alt="Radiomics feature taxonomy" width="75%">
 </p>
 
 ## Why FRD over FID, KID, CMMD, etc.?
@@ -214,7 +214,7 @@ Out-of-distribution detection using normalized radiomics features. Supports per-
 ## Interpretability
 
 <p align="center">
-  <img src="docs/assets/radiomic_interp.png" alt="Radiomic interpretability" width="65%">
+  <img src="https://raw.githubusercontent.com/RichardObi/frd-score/main/docs/assets/radiomic_interp.png" alt="Radiomic interpretability" width="65%">
 </p>
 
 FRD enables interpretable comparison of image sets. Use the `--interpret` flag or call `interpret_frd()` to:

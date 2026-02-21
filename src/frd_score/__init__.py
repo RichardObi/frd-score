@@ -1,4 +1,4 @@
-__version__ = "1.1.0"
+__version__ = "1.0.0"
 
 from .frd import (
     DEFAULT_BIN_WIDTH,

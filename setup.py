@@ -45,7 +45,7 @@ if __name__ == "__main__":
             "frd_score": ["configs/*.yaml", "py.typed"],
         },
         classifiers=[
-            "Development Status :: 4 - Beta",
+            "Development Status :: 5 - Production/Stable",
             "Intended Audience :: Science/Research",
             "Intended Audience :: Healthcare Industry",
             "License :: OSI Approved :: Apache Software License",

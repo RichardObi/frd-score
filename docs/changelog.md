@@ -26,14 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
-### Added
-
-- **3D medical image test fixtures** — 8 downsampled (32×32×16) NIfTI volumes from breast MRI in `tests/data/medical_3d/{d1,d2}/` (~77 KB total), providing realistic 3D end-to-end test coverage.
-- **`TestMedicalImages3D` test class** — 6 new tests exercising `compute_frd()` on real 3D medical images: v0/v1 computation, same-distribution sanity check, `norm_ref`, `exclude_features` (shape), and `means_only`.
-- **Medical image test fixtures** — 20 downscaled (128×128) grayscale PNGs from diverse modalities in `tests/data/medical_2d/{d1,d2}/`, providing realistic end-to-end test coverage.
-- **`TestMedicalImages2D` test class** — 10 new tests exercising `compute_frd()` on real medical images: v0/v1 computation, same-distribution sanity check, `norm_ref` variants, `exclude_features`, `resize_size`, `means_only`, and `match_sample_count`.
-
-## [1.1.0] — 2026-02-19
+## [1.0.0] — 2026-02-21
 
 ### Added
 
@@ -47,10 +40,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **Feature exclusion** — `exclude_features` for post-extraction ablation (`"textural"`, `"wavelet"`, `"firstorder"`, `"shape"`). The `"shape"` option removes `shape_*` and `shape2D_*` features, which are often constant when no mask is used.
 - **Sample matching** — `match_sample_count` to equalise dataset sizes.
 - **Means-only mode** — `means_only` for small datasets.
-- **MkDocs documentation** — hosted on GitHub Pages.
+- **MkDocs documentation** — hosted on GitHub Pages with full API reference.
 - **GitHub Actions CI** — automated testing and docs deployment.
 - **`--version` flag** — print the installed frd-score version and exit.
 - **Pyradiomics compatibility** — import guard with helpful error message for broken PyPI release ([#903](https://github.com/AIM-Harvard/pyradiomics/issues/903)).
+- **3D medical image test fixtures** — 8 downsampled (32×32×16) NIfTI volumes from breast MRI in `tests/data/medical_3d/{d1,d2}/` (~77 KB total), providing realistic 3D end-to-end test coverage.
+- **2D medical image test fixtures** — 20 downscaled (128×128) grayscale PNGs from diverse modalities in `tests/data/medical_2d/{d1,d2}/` (~155 KB total), providing realistic end-to-end test coverage.
+- **93+ tests** covering v0/v1 computation, normalisation modes, feature exclusion, OOD detection, interpretability, CLI, and real medical image pipelines.
 
 ### Changed
 
@@ -58,12 +54,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - **pyradiomics dependency** moved to documented install step (PyPI does not support git URLs in `install_requires`).
 - Default FRD version changed from v0 to v1.
 - `pyproject.toml` now declares build system.
+- Development status upgraded to Production/Stable.
 
 ### Fixed
 
 - Pyradiomics import failure on Python ≥3.10 handled with clear error message.
 
-## [1.0.0] — 2024
+## [0.0.2] — 2024-06-21
 
 ### Added
 
