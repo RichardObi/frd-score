@@ -26,6 +26,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-02-26
+
+### Fixed
+
+- **Lazy pyradiomics import** — `import frd_score` and `frd-score --version` no longer crash when pyradiomics is not installed. The import is deferred to the first function call that needs it (e.g. `compute_frd()`), with a clear `ImportError` and install instructions if missing. This unblocks the conda-forge release where pyradiomics is unavailable ([#903](https://github.com/AIM-Harvard/pyradiomics/issues/903)).
+
 ## [1.0.0] — 2026-02-21
 
 ### Added
