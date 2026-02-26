@@ -1,15 +1,15 @@
 {% set name = "frd-score" %}
-{% set version = "1.1.0" %}
+{% set version = "1.0.1" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/frd_score-{{ version }}.tar.gz
-  # Update sha256 after uploading the release to PyPI:
-  #   curl -sL https://pypi.org/pypi/frd-score/1.1.0/json | python -c "import sys,json; print(json.load(sys.stdin)['urls'][1]['digests']['sha256'])"
-  sha256: REPLACE_WITH_ACTUAL_SHA256_AFTER_PYPI_RELEASE
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/frd_score-{{ version }}.tar.gz
+  # After PyPI release, get sha256 with:
+  #   curl -sL https://pypi.org/pypi/frd-score/1.0.1/json | python -c "import sys,json; print(json.load(sys.stdin)['urls'][1]['digests']['sha256'])"
+  sha256: REPLACE_AFTER_PYPI_RELEASE
 
 build:
   number: 0
@@ -29,9 +29,12 @@ requirements:
     - numpy
     - pillow >=10.3.0
     - scipy >=1.10.0
-    - opencv >=4.8.1
+    - py-opencv >=4.8.1
     - simpleitk >=2.3.1
-    - pyradiomics
+    # pyradiomics is required at runtime but is not available on conda-forge
+    # for Python >=3.10 (https://github.com/AIM-Harvard/pyradiomics/issues/903).
+    # Users must install it separately after conda install:
+    #   pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master
 
 test:
   imports:
@@ -39,7 +42,7 @@ test:
     - frd_score.frd
   commands:
     - frd-score --version
-    - pip check
+    # pip check omitted: pyradiomics is not on conda-forge (see above)
   requires:
     - pip
 
