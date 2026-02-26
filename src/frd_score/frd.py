@@ -55,11 +55,13 @@ def _ensure_radiomics():
     if featureextractor is not None:
         return
     try:
-        from radiomics import featureextractor as _fe, setVerbosity as _sv
+        from radiomics import featureextractor as _fe
+        from radiomics import setVerbosity as _sv
     except ImportError as exc:
         raise ImportError(_PYRADIOMICS_INSTALL_MSG) from exc
     featureextractor = _fe
     setVerbosity = _sv
+
 
 import SimpleITK as sitk
 
