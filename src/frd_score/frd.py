@@ -34,17 +34,34 @@ import cv2
 import numpy as np
 from scipy import linalg
 
-try:
-    from radiomics import featureextractor, setVerbosity
-except ImportError as _exc:
-    _msg = (
-        "pyradiomics is not installed or failed to import.  "
-        "The PyPI release (<=3.1.0) is broken for Python >=3.10.  "
-        "Install from the GitHub master branch instead:\n\n"
-        "  pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master\n\n"
-        "See: https://github.com/AIM-Harvard/pyradiomics/issues/903"
-    )
-    raise ImportError(_msg) from _exc
+# pyradiomics is imported lazily so that `import frd_score` works even when
+# pyradiomics is not installed (e.g. in the conda-forge build environment).
+# The actual import is deferred to the first function call that needs it.
+featureextractor = None  # set by _ensure_radiomics()
+setVerbosity = None  # set by _ensure_radiomics()
+
+_PYRADIOMICS_INSTALL_MSG = (
+    "pyradiomics is not installed or failed to import.  "
+    "The PyPI release (<=3.1.0) is broken for Python >=3.10.  "
+    "Install from the GitHub master branch instead:\n\n"
+    "  pip install git+https://github.com/AIM-Harvard/pyradiomics.git@master\n\n"
+    "See: https://github.com/AIM-Harvard/pyradiomics/issues/903"
+)
+
+
+def _ensure_radiomics():
+    """Lazily import pyradiomics on first use, raising a clear error if missing."""
+    global featureextractor, setVerbosity
+    if featureextractor is not None:
+        return
+    try:
+        from radiomics import featureextractor as _fe
+        from radiomics import setVerbosity as _sv
+    except ImportError as exc:
+        raise ImportError(_PYRADIOMICS_INSTALL_MSG) from exc
+    featureextractor = _fe
+    setVerbosity = _sv
+
 
 import SimpleITK as sitk
 
@@ -635,6 +652,7 @@ def get_feature_extractor_v0(features, settings_dict: dict = None):
 
     # Set feature classes to compute
     settings["featureClass"] = {feature: [] for feature in features}
+    _ensure_radiomics()
     return featureextractor.RadiomicsFeatureExtractor(settings)
 
 
@@ -654,6 +672,7 @@ def get_feature_extractor_v1(config_path: str):
             f"v1 YAML config not found at {config_path}. "
             "Please ensure the package is installed correctly."
         )
+    _ensure_radiomics()
     return featureextractor.RadiomicsFeatureExtractor(config_path)
 
 
@@ -1954,6 +1973,8 @@ def compute_frd(
             stacklevel=2,
         )
 
+    _ensure_radiomics()
+
     if not verbose:
         logger = logging.getLogger("radiomics")
         logger.setLevel(logging.ERROR)
@@ -2207,6 +2228,8 @@ def main():
             frd_version, norm_type, norm_range, features, image_types, norm_ref=norm_ref
         )
 
+        _ensure_radiomics()
+
         if verbose:
             logging.basicConfig(level=logging.INFO)
         else:
@@ -2298,6 +2321,8 @@ def main():
     norm_type, norm_range, features, image_types, norm_ref = _resolve_defaults(
         frd_version, norm_type, norm_range, features, image_types, norm_ref=norm_ref
     )
+
+    _ensure_radiomics()
 
     if verbose:
         logging.basicConfig(level=logging.INFO)
